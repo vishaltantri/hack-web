@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/hooks/useAuth";
 import { Toaster } from "@/components/ui/sonner";
+import MockProvider from "@/components/mock-provider";
 
 export const metadata: Metadata = {
   title: "Hackulus'25",
@@ -29,10 +30,12 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Hackulus" />
       </head>
       <body className="antialiased bg-black">
-        <AuthProvider>
-          {children}
-          <Toaster position="top-center" richColors />
-        </AuthProvider>
+        <MockProvider>
+          <AuthProvider>
+            {children}
+            <Toaster position="top-center" richColors />
+          </AuthProvider>
+        </MockProvider>
       </body>
     </html>
   );

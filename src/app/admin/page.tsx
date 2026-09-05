@@ -18,6 +18,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import { useState, useMemo, useEffect } from "react";
 import { toast } from "sonner";
+import { Search, User, Edit2, AlertCircle } from "lucide-react";
 
 export interface Member {
   member_id: number;
@@ -60,7 +61,7 @@ interface Review {
 }
 
 const hackathonPhases = [
-  "Participants reach",
+  "Participants Reach",
   "Ideation",
   "Review 1",
   "Lunch",
@@ -105,6 +106,7 @@ const AdminDashboard = () => {
   const currentTotalScore = useMemo(() => {
     return Object.values(scores).reduce((sum, score) => sum + score, 0);
   }, [scores]);
+
   const latestSubmission = useMemo(() => {
     if (!selectedTeamDetails) return null;
     return (
@@ -114,6 +116,7 @@ const AdminDashboard = () => {
       null
     );
   }, [selectedTeamDetails]);
+
   const filteredTeams = useMemo(
     () =>
       teams.filter((team) =>
@@ -121,6 +124,7 @@ const AdminDashboard = () => {
       ),
     [teams, searchTerm]
   );
+
   const fetchTeams = async () => {
     try {
       const response = await api.get("/admin/teams");
@@ -130,6 +134,7 @@ const AdminDashboard = () => {
       console.error(error);
     }
   };
+
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
@@ -148,6 +153,7 @@ const AdminDashboard = () => {
     };
     fetchInitialData();
   }, []);
+
   useEffect(() => {
     if (selectedTeam) {
       setIsDetailsLoading(true);
@@ -204,6 +210,7 @@ const AdminDashboard = () => {
       console.error(error);
     }
   };
+
   const handleEliminateConfirm = async () => {
     if (!teamToEliminate) {
       toast.error("No team selected for elimination.");
@@ -238,8 +245,8 @@ const AdminDashboard = () => {
 
   if (isLoading) {
     return (
-      <div className="w-screen h-screen bg-white text-center flex items-center justify-center text-3xl text-black">
-        Loading...
+      <div className="min-h-screen bg-[#F6F7FA] flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-[#F67C1B] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -259,9 +266,9 @@ const AdminDashboard = () => {
 
   const handleScoreSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const latestSubmission = selectedTeamDetails?.submissions?.[0];
+    const latestSub = selectedTeamDetails?.submissions?.[0];
 
-    if (!selectedTeam || !latestSubmission) {
+    if (!selectedTeam || !latestSub) {
       toast.error("Please select a team with a submission to judge.");
       return;
     }
@@ -273,7 +280,7 @@ const AdminDashboard = () => {
 
     try {
       await api.post(
-        `/admin/submission/${latestSubmission.submission_id}/review`,
+        `/admin/submission/${latestSub.submission_id}/review`,
         payload
       );
       toast.success(
@@ -290,375 +297,397 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white relative overflow-hidden">
-      <Image
-        src="/vector8.svg"
-        alt=""
-        width={250}
-        height={250}
-        className="absolute bottom-0 right-0 z-10"
-      />
+    <div className="h-screen w-full flex overflow-hidden bg-[#F6F7FA] text-[#11152B] font-sans">
+      
+      {/* ── SIDEBAR ──────────────────────────────────────────────────────── */}
+      <Timeline currentPhase={timelinePhase || "Participants reach"} teamName="Admin Panel" />
 
-      <div className="flex h-screen">
-        <Timeline currentPhase={timelinePhase || "Participants reach"} />
-        <div className="flex-1 flex flex-col w-[calc(100%-18rem)]">
-          <div className="bg-white border-b-4 border-[#242e6c] text-[#242e6c] p-[1.15rem] relative">
-            <h1 className="text-6xl font-bold text-left castoro">
-              Hi, {user?.name || "Admin"}
-            </h1>
+      {/* ── MAIN CONTENT ─────────────────────────────────────────────────── */}
+      <div className="flex-1 relative overflow-hidden flex flex-col h-screen">
+        
+        {/* Background Decorative Elements */}
+        <div className="absolute top-8 right-8 grid grid-cols-4 gap-2 opacity-50 pointer-events-none z-0">
+          {[...Array(16)].map((_, i) => (
+            <div
+              key={i}
+              className={`w-1.5 h-1.5 rounded-full ${i % 3 === 0 ? "bg-[#F67C1B]" : "bg-gray-300"}`}
+            ></div>
+          ))}
+        </div>
+        
+        <div className="absolute -bottom-32 -left-10 w-full h-[300px] pointer-events-none z-0 opacity-80 flex">
+           <div className="w-[800px] h-[800px] rounded-full bg-gradient-to-tr from-[#11152B] to-[#1C254C] absolute -bottom-[600px] -left-[200px]"></div>
+           <div className="w-[600px] h-[600px] rounded-full bg-gradient-to-tr from-[#FF512F] to-[#F09819] absolute -bottom-[450px] left-[150px] opacity-90"></div>
+        </div>
+
+        {/* Content Wrapper */}
+        <div className="relative z-10 flex-1 overflow-y-auto p-10 pb-20">
+          
+          {/* ── HEADER ───────────────────────────────────────────────────── */}
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-4xl font-extrabold tracking-tight mb-2 flex items-center gap-2">
+                Hi, {user?.name || "Admin"}
+              </h1>
+              <p className="text-gray-500 font-medium">
+                Manage the Hackulus'25 event • All systems operational
+              </p>
+            </div>
+            
+            <div className="flex items-center gap-2 bg-white px-5 py-2 rounded-full border border-green-500/50 shadow-sm text-[#11152B] font-bold">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+              <span>Admin Mode</span>
+            </div>
           </div>
 
-          <div className="flex-1 p-8 flex-col items-center justify-center gap-8 z-20 overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-[#CF3D00] [&::-webkit-scrollbar-thumb]:rounded-full [scrollbar-color:#CF3D00]">
-            <div className="flex-1 space-y-8 w-full">
-              <div className="bg-[#CF3D00] p-6 rounded-2xl border-r-8 border-b-8 border-black space-y-4">
-                <Input
-                  placeholder="Search for a team..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full h-[44px] text-lg border-r-4 border-b-4 border-black rounded-lg bg-white placeholder:text-[#a8a8a7] text-black"
-                />
-                <div className="max-h-[250px] overflow-y-auto overflow-x-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-white [&::-webkit-scrollbar-thumb]:rounded-full">
-                  <table className="w-full text-white afacad text-left whitespace-nowrap">
-                    <thead className="sticky top-0 bg-[#CF3D00]">
-                      <tr>
-                        <th className="p-2">S.No</th>
-                        <th className="p-2">Team Name</th>
-                        <th className="p-2">Leader</th>
-                        <th className="p-2">Members</th>
-                        <th className="p-2">Track</th>
-                        <th className="p-2">Status</th>
+          <div className="grid xl:grid-cols-2 gap-8 relative z-20">
+            {/* ── LEFT COLUMN ─────────────────────────────────────────────── */}
+            <div className="flex flex-col gap-8">
+              
+              {/* Teams Table Card */}
+              <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 flex flex-col h-[500px]">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[#F67C1B] font-black text-xl italic">/</span>
+                    <h3 className="text-[#11152B] text-xl font-bold tracking-wide">
+                      Participating Teams
+                    </h3>
+                  </div>
+                  <div className="relative w-64">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input
+                      placeholder="Search for a team..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full h-10 pl-9 rounded-full bg-gray-50 border-gray-200 text-sm focus-visible:ring-[#F67C1B]"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 [&::-webkit-scrollbar-thumb]:rounded-full">
+                  <table className="w-full text-sm text-left">
+                    <thead className="sticky top-0 bg-white z-10 shadow-sm">
+                      <tr className="text-gray-500">
+                        <th className="py-3 px-4 font-semibold rounded-tl-xl">S.No</th>
+                        <th className="py-3 px-4 font-semibold">Team Name</th>
+                        <th className="py-3 px-4 font-semibold">Track</th>
+                        <th className="py-3 px-4 font-semibold rounded-tr-xl">Status</th>
                       </tr>
                     </thead>
-                    <tbody>
-                      {filteredTeams.map((team, index) => (
-                        <tr
-                          key={team.team_id}
-                          onClick={() => {
-                            if (team.status.toLowerCase() !== "rejected") {
-                              setSelectedTeam(team);
-                            }
-                          }}
-                          className={`border-t border-white/30 ${
-                            team.status.toLowerCase() === "rejected"
-                              ? "opacity-50 cursor-not-allowed bg-red-600/20"
-                              : "hover:bg-white/10 cursor-pointer"
-                          }`}
-                        >
-                          <td className="p-2">{index + 1}</td>
-                          <td className="p-2">{team.team_name}</td>
-                          <td className="p-2">{getTeamLeader(team)}</td>
-                          <td className="p-2">
-                            {team.members.map((m) => m.name).join(", ")}
-                          </td>
-                          <td className="p-2">{team.track_name}</td>
-                          <td className="p-2 capitalize">
-                            {team.status.toLowerCase() === "rejected" ? (
-                              <span className="text-red-300 font-semibold">
-                                {team.status}
-                              </span>
-                            ) : (
-                              team.status
-                            )}
-                          </td>
-                        </tr>
-                      ))}
+                    <tbody className="divide-y divide-gray-100">
+                      {filteredTeams.map((team, index) => {
+                        const isRejected = team.status.toLowerCase() === "rejected";
+                        const isSelected = selectedTeam?.team_id === team.team_id;
+
+                        return (
+                          <tr
+                            key={team.team_id}
+                            onClick={() => !isRejected && setSelectedTeam(team)}
+                            className={`group transition-colors ${
+                              isRejected
+                                ? "opacity-50 bg-red-50"
+                                : isSelected
+                                ? "bg-[#F67C1B]/10 cursor-pointer"
+                                : "hover:bg-gray-50 cursor-pointer"
+                            }`}
+                          >
+                            <td className="py-3 px-4 text-gray-400 font-medium">{index + 1}</td>
+                            <td className="py-3 px-4 font-semibold text-[#11152B]">
+                              {team.team_name}
+                            </td>
+                            <td className="py-3 px-4 text-gray-600 truncate max-w-[150px]">
+                              {team.track_name}
+                            </td>
+                            <td className="py-3 px-4 capitalize font-medium">
+                              {isRejected ? (
+                                <span className="text-red-500">{team.status}</span>
+                              ) : (
+                                <span className={team.status === "approved" ? "text-green-500" : "text-blue-500"}>
+                                  {team.status}
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
               </div>
 
-              <div className="bg-[#010027] p-8 rounded-2xl text-white border-r-8 border-b-8 border-black flex items-center justify-between">
-                <div className="afacad">
-                  <h3 className="text-3xl font-bold">Timeline Control</h3>
-                  <p className="text-white/70">
-                    Select the current phase of the hackathon.
-                  </p>
+              {/* Timeline Control Card */}
+              <div className="bg-[#151932] rounded-3xl p-8 shadow-xl border border-white/5 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#F67C1B]/10 rounded-full blur-[40px] pointer-events-none"></div>
+                
+                <div className="flex items-center gap-2 mb-2 relative z-10">
+                  <span className="text-[#F67C1B] font-black text-xl italic">/</span>
+                  <h3 className="text-white text-xl font-bold tracking-wide">
+                    Timeline Control
+                  </h3>
                 </div>
-                <div className="flex items-center gap-4">
-                  <Select
-                    value={timelinePhase}
-                    onValueChange={setTimelinePhase}
-                  >
-                    <SelectTrigger className="w-[280px] h-[44px] text-lg border-r-4 border-b-4 border-black rounded-lg bg-white text-black">
+                <p className="text-white/60 text-sm mb-6 relative z-10">
+                  Select the current active phase of the hackathon.
+                </p>
+
+                <div className="flex flex-col sm:flex-row items-center gap-4 relative z-10">
+                  <Select value={timelinePhase} onValueChange={setTimelinePhase}>
+                    <SelectTrigger className="w-full h-12 bg-white/10 border-white/20 text-white focus:ring-[#F67C1B]">
                       <SelectValue placeholder="Select a phase" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-[#151932] border-white/20 text-white">
                       {hackathonPhases.map((phase) => (
-                        <SelectItem
-                          key={phase}
-                          value={phase}
-                          className="focus:bg-[#CF3D00] focus:text-white"
-                        >
+                        <SelectItem key={phase} value={phase} className="focus:bg-white/10 focus:text-white">
                           {phase}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                  
                   <Button
                     onClick={handleTimelineUpdate}
-                    className="bg-[#CF3D00] hover:bg-[#CF3D00] text-white text-lg font-semibold px-8 py-5 rounded-lg border-r-4 border-b-4 border-black"
+                    className="w-full sm:w-auto bg-gradient-to-r from-[#FF512F] to-[#F09819] hover:from-[#F09819] hover:to-[#FF512F] text-white font-bold h-12 px-8 rounded-xl shadow-[0_4px_15px_rgba(246,124,27,0.3)] hover:shadow-[0_6px_20px_rgba(246,124,27,0.4)] transition-all"
                   >
                     Confirm
                   </Button>
                 </div>
               </div>
+
             </div>
 
-            <div className="w-full mt-8">
-              <div className="bg-[#010027] p-8 rounded-2xl text-white border-r-8 border-b-8 border-black">
-                <h3 className="text-3xl !font-bold mb-4 afacad">
-                  Project Details
-                </h3>
-                {selectedTeam ? (
-                  isDetailsLoading ? (
-                    <div className="text-center py-10">Loading details...</div>
-                  ) : (
-                    <div className="space-y-4 afacad">
-                      <div>
-                        <label className="text-lg font-semibold block mb-1">
-                          Track Name
-                        </label>
-                        <Input
-                          readOnly
-                          value={selectedTeamDetails?.track_name || "N/A"}
-                          className="h-[44px] text-lg border-r-4 border-b-4 border-black rounded-lg bg-white text-black placeholder:text-[#a8a8a7]"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-lg font-semibold block mb-1">
-                          Problem Statement
-                        </label>
-                        <Input
-                          value={
-                            selectedTeamDetails?.problem_statement || "N/A"
-                          }
-                          className="h-[44px] text-lg border-r-4 border-b-4 border-black rounded-lg bg-white text-black placeholder:text-[#a8a8a7]"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-lg font-semibold block mb-1">
-                          Idea Name
-                        </label>
-                        <Input
-                          value={latestSubmission?.title || "N/A"}
-                          readOnly
-                          className="h-[44px] text-lg border-r-4 border-b-4 border-black rounded-lg bg-white text-black placeholder:text-[#a8a8a7]"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-lg font-semibold block mb-1">
-                          Description
-                        </label>
-                        <Input
-                          value={latestSubmission?.description || "N/A"}
-                          readOnly
-                          className="h-[44px] text-lg border-r-4 border-b-4 border-black rounded-lg bg-white text-black placeholder:text-[#a8a8a7]"
-                        />
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                          <label className="text-lg font-semibold block mb-1">
-                            GitHub Link
-                          </label>
-                          <Input
-                            value={
-                              latestSubmission?.links?.github_link || "N/A"
-                            }
-                            readOnly
-                            className="h-[44px] text-lg border-r-4 border-b-4 border-black rounded-lg bg-white text-black"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-lg font-semibold block mb-1">
-                            Figma Link
-                          </label>
-                          <Input
-                            value={latestSubmission?.links?.figma_link || "N/A"}
-                            readOnly
-                            className="h-[44px] text-lg border-r-4 border-b-4 border-black rounded-lg bg-white text-black"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-lg font-semibold block mb-1">
-                            Presentation Link
-                          </label>
-                          <Input
-                            value={
-                              latestSubmission?.links?.presentation_link ||
-                              "N/A"
-                            }
-                            readOnly
-                            className="h-[44px] text-lg border-r-4 border-b-4 border-black rounded-lg bg-white text-black"
-                          />
-                        </div>
-                      </div>
+            {/* ── RIGHT COLUMN ────────────────────────────────────────────── */}
+            <div className="flex flex-col gap-8">
+              
+              {/* Judging Panel Card */}
+              <div className="bg-[#151932] rounded-3xl p-8 shadow-xl border border-white/5 relative overflow-hidden">
+                {/* Glowing bg effects */}
+                <div className="absolute -left-20 top-1/2 -translate-y-1/2 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px]"></div>
+                
+                <div className="flex items-center justify-between mb-8 relative z-10">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[#F67C1B] font-black text-xl italic">/</span>
+                      <h3 className="text-white text-xl font-bold tracking-wide">
+                        Judging Panel
+                      </h3>
                     </div>
-                  )
-                ) : (
-                  <div className="text-center py-10 afacad">
-                    <p className="text-2xl text-white/70">
-                      Select a team to view their project details.
-                    </p>
+                    {selectedTeam ? (
+                      <p className="text-white/80 font-medium">
+                        Judging: <span className="text-white font-bold">{selectedTeam.team_name}</span>
+                      </p>
+                    ) : (
+                      <p className="text-white/50 text-sm">Select a team to begin judging</p>
+                    )}
                   </div>
-                )}
-              </div>
-            </div>
 
-            <div className="w-full mt-8">
-              <div className="bg-[#010027] p-8 rounded-2xl text-white border-r-8 border-b-8 border-black">
-                <h3 className="text-3xl !font-bold mb-4 afacad">
-                  Judging Panel
-                </h3>
-                {selectedTeam ? (
-                  <form onSubmit={handleScoreSubmit} className="afacad">
-                    <div className="flex justify-between items-center mb-6">
-                      <div>
-                        <h3 className="text-3xl font-bold">
-                          Judging: {selectedTeam.team_name}
-                        </h3>
-                        <p className="text-white/70">
-                          Current Score: {currentTotalScore}
-                          {previousReview &&
-                            ` (Previous Score: ${previousReview.score})`}
-                        </p>
-                      </div>
-                      <Button
-                        type="button"
-                        onClick={() => setSelectedTeam(null)}
-                        className="bg-white border-b-2 border-r-2 border-black text-black hover:bg-white text-lg"
-                      >
-                        Clear Selection
-                      </Button>
+                  {selectedTeam && (
+                    <div className="text-right">
+                       <div className="text-sm text-white/50 mb-1">Total Score</div>
+                       <div className="text-3xl font-black text-[#F67C1B]">{currentTotalScore}</div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4">
+                  )}
+                </div>
+
+                {selectedTeam ? (
+                  <form onSubmit={handleScoreSubmit} className="relative z-10">
+                    <div className="grid grid-cols-2 gap-x-6 gap-y-4 mb-6">
                       {judgingCriteria.map((criterion) => (
                         <div key={criterion}>
-                          <label className="text-lg font-semibold block mb-1">
-                            {criterion} (0-7)
+                          <label className="text-white/80 text-xs font-semibold block mb-1.5 uppercase tracking-wider">
+                            {criterion} <span className="text-white/40">(0-7)</span>
                           </label>
                           <Input
                             type="number"
                             min="0"
                             max="7"
                             value={scores[criterion] || ""}
-                            onChange={(e) =>
-                              handleScoreChange(criterion, e.target.value)
-                            }
-                            className="h-[44px] text-lg border-r-4 border-b-4 border-black rounded-lg bg-white text-black"
+                            onChange={(e) => handleScoreChange(criterion, e.target.value)}
+                            className="h-10 bg-white/5 border-white/10 text-white focus-visible:ring-[#F67C1B] rounded-lg"
                           />
                         </div>
                       ))}
                     </div>
-                    <div>
-                      <label className="text-lg font-semibold block mb-1">
+                    
+                    <div className="mb-8">
+                      <label className="text-white/80 text-xs font-semibold block mb-1.5 uppercase tracking-wider">
                         Comments
                       </label>
                       <Textarea
                         value={comments}
                         onChange={(e) => setComments(e.target.value)}
                         placeholder="Provide feedback for the team..."
-                        className="bg-white text-black rounded-lg border-r-4 border-b-4 border-black"
+                        className="bg-white/5 border-white/10 text-white focus-visible:ring-[#F67C1B] rounded-xl resize-none h-24"
                       />
                     </div>
-                    <div className="flex justify-end mt-6">
+
+                    <div className="flex items-center gap-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setSelectedTeam(null)}
+                        className="flex-1 border-white/20 text-white hover:bg-white/10 h-12 rounded-xl"
+                      >
+                        Clear Selection
+                      </Button>
                       <Button
                         type="submit"
-                        className="bg-[#CF3D00] hover:bg-[#CF3D00] text-white text-xl font-semibold px-8 py-5 rounded-lg border-r-4 border-b-4 border-black"
+                        className="flex-1 bg-gradient-to-r from-[#FF512F] to-[#F09819] hover:from-[#F09819] hover:to-[#FF512F] text-white font-bold h-12 rounded-xl shadow-[0_4px_15px_rgba(246,124,27,0.3)] transition-all"
                       >
                         Submit Score
                       </Button>
                     </div>
                   </form>
                 ) : (
-                  <div className="text-center py-10 afacad">
-                    <p className="text-2xl text-white/70">
-                      Select a team from the table above to begin judging.
-                    </p>
+                  <div className="py-12 flex flex-col items-center justify-center text-center opacity-60 border-2 border-dashed border-white/10 rounded-2xl">
+                    <Edit2 className="w-12 h-12 text-white/30 mb-4" />
+                    <p className="text-white text-sm">Select a team from the table on the left<br/>to grade their submission.</p>
                   </div>
                 )}
               </div>
-            </div>
 
-            <div className="w-full mt-8">
-              <div className="bg-[#CF3D00] p-6 rounded-2xl border-r-8 border-b-8 border-black space-y-4">
-                <div className="afacad text-white">
-                  <h3 className="text-3xl font-bold">Eliminate Team</h3>
-                  <p className="text-white/70">
-                    Select a team to eliminate them from Hackulus&apos;25.
-                  </p>
+              {/* Project Details Card */}
+              {selectedTeam && (
+                <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 relative overflow-hidden">
+                  <div className="flex items-center gap-2 mb-6">
+                    <span className="text-[#F67C1B] font-black text-xl italic">/</span>
+                    <h3 className="text-[#11152B] text-xl font-bold tracking-wide">
+                      Project Details
+                    </h3>
+                  </div>
+
+                  {isDetailsLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="w-8 h-8 border-3 border-[#F67C1B] border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                           <label className="text-gray-500 text-xs font-semibold uppercase tracking-wider block mb-1">Track</label>
+                           <div className="bg-gray-50 border border-gray-100 p-3 rounded-xl text-sm font-medium text-gray-800">
+                             {selectedTeamDetails?.track_name || "N/A"}
+                           </div>
+                        </div>
+                        <div>
+                           <label className="text-gray-500 text-xs font-semibold uppercase tracking-wider block mb-1">Idea Title</label>
+                           <div className="bg-gray-50 border border-gray-100 p-3 rounded-xl text-sm font-medium text-gray-800 truncate">
+                             {latestSubmission?.title || "N/A"}
+                           </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-gray-500 text-xs font-semibold uppercase tracking-wider block mb-1">Description</label>
+                        <div className="bg-gray-50 border border-gray-100 p-3 rounded-xl text-sm text-gray-700 min-h-[80px]">
+                           {latestSubmission?.description || "No description provided."}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-3 pt-2">
+                        {['github_link', 'figma_link', 'presentation_link'].map((key) => {
+                          const val = latestSubmission?.links?.[key as keyof typeof latestSubmission.links];
+                          const name = key.split('_')[0];
+                          return (
+                            <a
+                              key={key}
+                              href={val && val !== "N/A" ? val : "#"}
+                              target="_blank"
+                              rel="noreferrer"
+                              className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${
+                                val && val !== "N/A" 
+                                ? "bg-white border-[#F67C1B]/30 hover:border-[#F67C1B] hover:shadow-md text-[#11152B]" 
+                                : "bg-gray-50 border-gray-100 text-gray-400 cursor-not-allowed"
+                              }`}
+                            >
+                              <span className="capitalize text-xs font-bold">{name}</span>
+                            </a>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div className="flex items-center gap-4">
-                  <Select
-                    onValueChange={(value) => setTeamToEliminate(Number(value))}
-                  >
-                    <SelectTrigger className="w-full h-[44px] text-lg border-r-4 border-b-4 border-black rounded-lg bg-white text-black">
-                      <SelectValue placeholder="Select a team to eliminate" />
+              )}
+
+              {/* Elimination Zone */}
+              <div className="bg-red-50 border border-red-100 rounded-3xl p-6 shadow-sm">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertCircle className="w-5 h-5 text-red-500" />
+                  <h3 className="text-red-900 text-lg font-bold tracking-wide">
+                    Danger Zone
+                  </h3>
+                </div>
+                <p className="text-red-700/70 text-sm mb-4">
+                  Eliminate a team from Hackulus'25 permanently.
+                </p>
+
+                <div className="flex gap-4">
+                  <Select onValueChange={(value) => setTeamToEliminate(Number(value))}>
+                    <SelectTrigger className="flex-1 h-12 bg-white border-red-200 text-red-900 focus:ring-red-500">
+                      <SelectValue placeholder="Select team to eliminate..." />
                     </SelectTrigger>
                     <SelectContent>
                       {activeTeams.map((team) => (
-                        <SelectItem
-                          key={team.team_id}
-                          value={String(team.team_id)}
-                          className="focus:bg-red-600 focus:text-white"
-                        >
+                        <SelectItem key={team.team_id} value={String(team.team_id)} className="text-red-900 focus:bg-red-50">
                           {team.team_name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   <Button
-                    onClick={() =>
-                      teamToEliminate && setIsEliminationModalOpen(true)
-                    }
+                    onClick={() => teamToEliminate && setIsEliminationModalOpen(true)}
                     disabled={!teamToEliminate}
-                    className="bg-red-600 hover:bg-red-600 disabled:cursor-not-allowed text-white text-lg font-semibold px-8 py-5 rounded-lg border-r-4 border-b-4 border-black"
+                    className="bg-red-600 hover:bg-red-700 text-white font-bold h-12 px-6 rounded-xl transition-all"
                   >
                     Eliminate
                   </Button>
                 </div>
               </div>
+
             </div>
           </div>
         </div>
       </div>
 
+      {/* ── ELIMINATION MODAL ────────────────────────────────────────────── */}
       <AnimatePresence>
         {isEliminationModalOpen && (
           <>
             <motion.div
-              className="fixed inset-0 z-40 backdrop-blur-sm bg-black/30"
+              className="fixed inset-0 z-40 backdrop-blur-sm bg-[#11152B]/40"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             />
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
               <motion.div
-                className="w-full max-w-md p-8 rounded-2xl shadow-2xl border-r-8 border-b-8 border-black bg-gradient-to-b from-[#010027] via-[#13184E] to-[#3142B4]"
-                initial={{ scale: 0.7, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.7, opacity: 0 }}
-                transition={{ type: "spring", damping: 15, stiffness: 200 }}
+                className="w-full max-w-md p-8 rounded-3xl shadow-2xl bg-white border border-gray-100"
+                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                transition={{ type: "spring", damping: 20, stiffness: 300 }}
               >
-                <h2 className="text-3xl font-bold text-white afacad text-center">
+                <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-6">
+                   <AlertCircle className="w-8 h-8 text-red-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-center text-[#11152B] mb-2">
                   Confirm Elimination
                 </h2>
-                <p className="text-center text-white mt-2 mb-6">
-                  Are you sure you want to eliminate team &quot;
-                  {teams.find((t) => t.team_id === teamToEliminate)?.team_name}
-                  &quot;? This action cannot be reversed.
+                <p className="text-center text-gray-500 text-sm mb-8">
+                  Are you absolutely sure you want to eliminate <br/><strong className="text-[#11152B]">"{teams.find((t) => t.team_id === teamToEliminate)?.team_name}"</strong>?<br/>This action cannot be reversed.
                 </p>
-                <div className="flex justify-center gap-4">
+                <div className="flex gap-4">
                   <Button
+                    variant="outline"
                     onClick={() => setIsEliminationModalOpen(false)}
-                    className="bg-white hover:bg-white text-black text-lg font-semibold px-8 py-5 rounded-lg border-r-4 border-b-4 border-black"
+                    className="flex-1 h-12 rounded-xl text-gray-600 font-semibold"
                   >
                     Cancel
                   </Button>
                   <Button
                     onClick={handleEliminateConfirm}
-                    className="bg-red-600 hover:bg-red-600 text-white text-lg font-semibold px-8 py-5 rounded-lg border-r-4 border-b-4 border-black"
+                    className="flex-1 h-12 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold"
                   >
-                    Eliminate
+                    Yes, Eliminate
                   </Button>
                 </div>
               </motion.div>
