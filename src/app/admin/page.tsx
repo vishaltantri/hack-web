@@ -15,10 +15,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
 import api from "@/lib/api";
 import { AnimatePresence, motion } from "framer-motion";
-import Image from "next/image";
 import { useState, useMemo, useEffect } from "react";
 import { toast } from "sonner";
-import { Search, User, Edit2, AlertCircle } from "lucide-react";
+import { Search, Edit2, AlertCircle } from "lucide-react";
 
 export interface Member {
   member_id: number;
@@ -56,7 +55,12 @@ interface TeamDetails extends Team {
 
 interface Review {
   judge_id: number;
-  score: number;
+  innovation_score: number;
+  technical_complexity_score: number;
+  completeness_score: number;
+  presentation_score: number;
+  scalability_score: number;
+  impact_score: number;
   comments: string;
 }
 
@@ -72,14 +76,14 @@ const hackathonPhases = [
   "Final Review",
 ];
 
-const judgingCriteria = [
-  "Innovation & Creativity",
-  "Impact",
-  "Technical Implementation",
-  "Design & User Experience",
-  "Functionality & Working Demo",
-  "Presentation & Pitch",
-  "Scalability",
+// Matches backend ReviewCreateUpdate schema — 6 categories, 0–100 each
+const scoringCategories = [
+  { key: "innovation_score", label: "Innovation" },
+  { key: "technical_complexity_score", label: "Technical Complexity" },
+  { key: "completeness_score", label: "Completeness" },
+  { key: "presentation_score", label: "Presentation" },
+  { key: "scalability_score", label: "Scalability" },
+  { key: "impact_score", label: "Impact" },
 ];
 
 const AdminDashboard = () => {
@@ -96,6 +100,7 @@ const AdminDashboard = () => {
   const [comments, setComments] = useState("");
   const [teamToEliminate, setTeamToEliminate] = useState<number | null>(null);
   const [isEliminationModalOpen, setIsEliminationModalOpen] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [previousReview, setPreviousReview] = useState<Review | null>(null);
 
   const activeTeams = useMemo(
@@ -142,8 +147,8 @@ const AdminDashboard = () => {
           api.get("/admin/teams"),
           api.get("/admin/timeline/phase"),
         ]);
-        setTeams(teamsRes.data.teams);
-        setTimelinePhase(timelineRes.data.currentPhase);
+        setTeams(teamsRes.data.teams || []);
+        setTimelinePhase(timelineRes.data.currentPhase || "");
       } catch (error) {
         toast.error("Failed to fetch initial admin data.");
         console.error(error);
@@ -165,7 +170,7 @@ const AdminDashboard = () => {
         .get(`/admin/team/${selectedTeam.team_id}`)
         .then((response) => {
           const { team, members, submissions } = response.data;
-          const details = { ...team, members, submissions };
+          const details = { ...team, members: members || team.members, submissions: submissions || team.submissions };
           setSelectedTeamDetails(details);
           const latestSub =
             details.submissions.find(
@@ -181,12 +186,19 @@ const AdminDashboard = () => {
             api
               .get(`/admin/submission/${latestSub.submission_id}`)
               .then((res) => {
-                const currentUserReview = res.data.reviews.find(
+                const currentUserReview = (res.data.reviews || []).find(
                   (review: Review) => review.judge_id === user?.user_id
                 );
                 if (currentUserReview) {
                   setPreviousReview(currentUserReview);
                   setComments(currentUserReview.comments || "");
+                  // Pre-fill scores from previous review
+                  const prevScores: Record<string, number> = {};
+                  for (const cat of scoringCategories) {
+                    const val = currentUserReview[cat.key as keyof Review];
+                    if (typeof val === "number") prevScores[cat.key] = val;
+                  }
+                  setScores(prevScores);
                 }
               });
           }
@@ -230,7 +242,7 @@ const AdminDashboard = () => {
       //eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       toast.error(
-        error.response?.data?.message ||
+        error?.response?.data?.detail ||
           "Failed to eliminate team. You may not have permission."
       );
     } finally {
@@ -239,6 +251,7 @@ const AdminDashboard = () => {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const getTeamLeader = (team: Team) => {
     return team.members.find((member) => member.is_leader)?.name || "N/A";
   };
@@ -251,14 +264,14 @@ const AdminDashboard = () => {
     );
   }
 
-  const handleScoreChange = (criteria: string, value: string) => {
+  const handleScoreChange = (categoryKey: string, value: string) => {
     const numericValue = parseInt(value, 10);
-    if (!isNaN(numericValue) && numericValue >= 0 && numericValue <= 10) {
-      setScores((prev) => ({ ...prev, [criteria]: numericValue }));
+    if (!isNaN(numericValue) && numericValue >= 0 && numericValue <= 100) {
+      setScores((prev) => ({ ...prev, [categoryKey]: numericValue }));
     } else if (value === "") {
       setScores((prev) => {
         const newScores = { ...prev };
-        delete newScores[criteria];
+        delete newScores[categoryKey];
         return newScores;
       });
     }
@@ -273,25 +286,34 @@ const AdminDashboard = () => {
       return;
     }
 
+    // Build payload matching backend ReviewCreateUpdate schema
     const payload = {
-      score: currentTotalScore,
+      submission_id: latestSub.submission_id,
+      team_id: selectedTeam.team_id,
+      innovation_score: scores["innovation_score"] || 0,
+      technical_complexity_score: scores["technical_complexity_score"] || 0,
+      completeness_score: scores["completeness_score"] || 0,
+      presentation_score: scores["presentation_score"] || 0,
+      scalability_score: scores["scalability_score"] || 0,
+      impact_score: scores["impact_score"] || 0,
       comments: comments,
     };
 
     try {
+      // Backend route: POST /reviews/submission/{submission_id}
       await api.post(
-        `/admin/submission/${latestSub.submission_id}/review`,
+        `/reviews/submission/${latestSub.submission_id}`,
         payload
       );
       toast.success(
-        `Score of ${currentTotalScore} submitted for ${selectedTeam.team_name}`
+        `Review submitted for ${selectedTeam.team_name} (Total: ${currentTotalScore})`
       );
       setSelectedTeam(null);
       setSelectedTeamDetails(null);
     } catch (error) {
       toast.error(
         //eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (error as any).response?.data?.message || "Failed to submit score."
+        (error as any).response?.data?.detail || "Failed to submit review."
       );
     }
   };
@@ -330,7 +352,7 @@ const AdminDashboard = () => {
                 Hi, {user?.name || "Admin"}
               </h1>
               <p className="text-gray-500 font-medium">
-                Manage the Hackulus'25 event • All systems operational
+                Manage the Hackulus&apos;25 event • All systems operational
               </p>
             </div>
             
@@ -402,7 +424,11 @@ const AdminDashboard = () => {
                               {isRejected ? (
                                 <span className="text-red-500">{team.status}</span>
                               ) : (
-                                <span className={team.status === "approved" ? "text-green-500" : "text-blue-500"}>
+                                <span className={
+                                  team.status === "accepted" ? "text-green-500" 
+                                  : team.status === "shortlisted" ? "text-purple-500" 
+                                  : "text-blue-500"
+                                }>
                                   {team.status}
                                 </span>
                               )}
@@ -490,17 +516,17 @@ const AdminDashboard = () => {
                 {selectedTeam ? (
                   <form onSubmit={handleScoreSubmit} className="relative z-10">
                     <div className="grid grid-cols-2 gap-x-6 gap-y-4 mb-6">
-                      {judgingCriteria.map((criterion) => (
-                        <div key={criterion}>
+                      {scoringCategories.map((category) => (
+                        <div key={category.key}>
                           <label className="text-white/80 text-xs font-semibold block mb-1.5 uppercase tracking-wider">
-                            {criterion} <span className="text-white/40">(0-7)</span>
+                            {category.label} <span className="text-white/40">(0-100)</span>
                           </label>
                           <Input
                             type="number"
                             min="0"
-                            max="7"
-                            value={scores[criterion] || ""}
-                            onChange={(e) => handleScoreChange(criterion, e.target.value)}
+                            max="100"
+                            value={scores[category.key] ?? ""}
+                            onChange={(e) => handleScoreChange(category.key, e.target.value)}
                             className="h-10 bg-white/5 border-white/10 text-white focus-visible:ring-[#F67C1B] rounded-lg"
                           />
                         </div>
@@ -617,7 +643,7 @@ const AdminDashboard = () => {
                   </h3>
                 </div>
                 <p className="text-red-700/70 text-sm mb-4">
-                  Eliminate a team from Hackulus'25 permanently.
+                   Permanently eliminate a team from Hackulus&apos;25.
                 </p>
 
                 <div className="flex gap-4">
@@ -673,7 +699,7 @@ const AdminDashboard = () => {
                   Confirm Elimination
                 </h2>
                 <p className="text-center text-gray-500 text-sm mb-8">
-                  Are you absolutely sure you want to eliminate <br/><strong className="text-[#11152B]">"{teams.find((t) => t.team_id === teamToEliminate)?.team_name}"</strong>?<br/>This action cannot be reversed.
+                  Are you absolutely sure you want to eliminate <br/><strong className="text-[#11152B]">&ldquo;{teams.find((t) => t.team_id === teamToEliminate)?.team_name}&rdquo;</strong>?<br/>This action cannot be reversed.
                 </p>
                 <div className="flex gap-4">
                   <Button

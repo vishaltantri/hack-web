@@ -4,8 +4,15 @@
  * This file intercepts all axios requests and returns realistic dummy data.
  * Activated when NEXT_PUBLIC_MOCK_BACKEND=true is set in .env.local
  *
+ * Aligned with Hackulus_26_BE FastAPI backend:
+ *   - Auth: /auth/user/login, /auth/admin/login → { access_token, token_type }
+ *   - Users: /users/home, /users/submit/review1, etc.
+ *   - Submissions: /submissions/
+ *   - Admin: /admin/teams, /admin/team/{id}, /admin/team/{id}/status, /admin/timeline/phase
+ *   - Reviews: /reviews/submission/{submission_id}
+ *
  * Dummy personas:
- *   - Regular user  → token with role:"user"
+ *   - Regular user  → token with role:"participant"
  *   - Admin/Judge   → token with role:"judge"
  *
  * Switch between them by calling switchMockUser("admin") or switchMockUser("user")
@@ -26,7 +33,7 @@ const fakeJwt = (payload: object): string => {
 const MOCK_USER_TOKEN = fakeJwt({
   user_id: 1,
   email: "john.doe2023@vitstudent.ac.in",
-  role: "user",
+  role: "participant",
   team_id: 42,
   is_leader: true,
   name: "John Doe",
@@ -53,7 +60,7 @@ if (typeof window !== "undefined" && process.env.NEXT_PUBLIC_MOCK_BACKEND === "t
 
 // Browser console helper to swap personas without page reload
 if (typeof window !== "undefined" && process.env.NEXT_PUBLIC_MOCK_BACKEND === "true") {
-  (window as Window & { switchMockUser: (role: "user" | "admin") => void }).switchMockUser = (
+  (window as unknown as { switchMockUser: (role: "user" | "admin") => void }).switchMockUser = (
     role: "user" | "admin"
   ) => {
     localStorage.setItem(
@@ -74,7 +81,7 @@ const MOCK_USER = {
   user_id: 1,
   name: "John Doe",
   email: "john.doe2023@vitstudent.ac.in",
-  role: "user",
+  role: "participant",
   team_id: 42,
   is_leader: true,
 };
@@ -83,7 +90,7 @@ const MOCK_TEAM = {
   team_id: 42,
   team_name: "Neural Ninjas",
   track_name: "AI and Mathematical Modelling",
-  status: "approved",
+  status: "accepted",
   problem_statement: "Adaptive Fleet Rerouting in Congested Cities",
   idea: "We propose an adaptive ML-powered system that ingests real-time traffic, weather and historical delivery data to recompute optimal fleet routes. The core model is a Graph Neural Network operating on a live city-road graph.",
 };
@@ -125,7 +132,7 @@ const MOCK_WINDOWS = {
   final: false,
 };
 
-const MOCK_SUBMISSIONS = [
+const MOCK_SUBMISSIONS: MockSubmission[] = [
   {
     submission_id: 101,
     type: "review1",
@@ -149,7 +156,7 @@ const MOCK_ADMIN_USER = {
   is_leader: false,
 };
 
-const MOCK_TEAMS_LIST: typeof MOCK_TEAM_DETAILS[] = [];
+const MOCK_TEAMS_LIST: MockTeamDetails[] = [];
 
 // Build 12 fake teams for the admin panel
 const trackNames = [
@@ -193,7 +200,12 @@ interface MockSubmission {
 
 interface MockReview {
   judge_id: number;
-  score: number;
+  innovation_score: number;
+  technical_complexity_score: number;
+  completeness_score: number;
+  presentation_score: number;
+  scalability_score: number;
+  impact_score: number;
   comments: string;
 }
 
@@ -216,7 +228,12 @@ const MOCK_TEAM_DETAILS: MockTeamDetails = {
   reviews: [
     {
       judge_id: 99,
-      score: 85,
+      innovation_score: 85,
+      technical_complexity_score: 78,
+      completeness_score: 72,
+      presentation_score: 90,
+      scalability_score: 80,
+      impact_score: 88,
       comments:
         "Strong idea with clear problem understanding. GNN approach is innovative. Work on the demo.",
     },
@@ -228,7 +245,7 @@ for (let i = 0; i < 12; i++) {
     team_id: 42 + i,
     team_name: `${teamNamePrefixes[i]} ${teamNameSuffixes[i]}`,
     track_name: trackNames[i % trackNames.length],
-    status: i % 3 === 0 ? "pending" : i % 3 === 1 ? "approved" : "qualified",
+    status: i % 4 === 0 ? "pending" : i % 4 === 1 ? "accepted" : i % 4 === 2 ? "shortlisted" : "rejected",
     problem_statement: "Sample Problem Statement",
     idea: "This team has a great idea that solves a real-world problem using cutting-edge technology.",
     members: [
@@ -271,7 +288,12 @@ for (let i = 0; i < 12; i++) {
         ? [
             {
               judge_id: 99,
-              score: 70 + i * 2,
+              innovation_score: 70 + i * 2,
+              technical_complexity_score: 65 + i * 3,
+              completeness_score: 60 + i * 2,
+              presentation_score: 75 + i,
+              scalability_score: 68 + i * 2,
+              impact_score: 72 + i * 2,
               comments: `Good work by team ${i + 1}. Solid execution.`,
             },
           ]
@@ -298,6 +320,7 @@ export function setupMockBackend() {
     new Promise((resolve) => setTimeout(resolve, ms));
 
   // ── Auth endpoints ──────────────────────────────────────────────────────────
+  // Backend returns { access_token, token_type } per TokenResponse schema
 
   // User login
   mock.onPost("/auth/user/login").reply(async (config) => {
@@ -305,14 +328,14 @@ export function setupMockBackend() {
     const body = JSON.parse(config.data || "{}");
     // Accept any email/password in mock mode
     void body;
-    return [200, { token: MOCK_USER_TOKEN }];
+    return [200, { access_token: MOCK_USER_TOKEN, token_type: "bearer" }];
   });
 
   // Admin login
   mock.onPost("/auth/admin/login").reply(async (config) => {
     await delay(300);
     void config;
-    return [200, { token: MOCK_ADMIN_TOKEN }];
+    return [200, { access_token: MOCK_ADMIN_TOKEN, token_type: "bearer" }];
   });
 
   // Logout
@@ -329,8 +352,12 @@ export function setupMockBackend() {
     currentPhase: "Review 1",
   });
 
-  // User's submissions
-  mock.onGet("/users/submissions").reply(200, {
+  // User's submissions (backend route: GET /submissions/)
+  mock.onGet("/submissions/").reply(200, {
+    submissions: MOCK_SUBMISSIONS,
+  });
+  // Also handle without trailing slash
+  mock.onGet("/submissions").reply(200, {
     submissions: MOCK_SUBMISSIONS,
   });
 
@@ -401,45 +428,85 @@ export function setupMockBackend() {
   // All teams
   mock.onGet("/admin/teams").reply(200, { teams: MOCK_TEAMS_LIST });
 
-  // Single team details
-  mock.onGet(/\/admin\/teams\/\d+/).reply((config) => {
+  // Single team details (backend: GET /admin/team/{id})
+  mock.onGet(/\/admin\/team\/\d+$/).reply((config) => {
     const id = parseInt(config.url?.split("/").pop() || "0", 10);
     const found = MOCK_TEAMS_LIST.find((t) => t.team_id === id);
-    if (found) return [200, { team: { ...found, submissions: found.submissions, reviews: found.reviews } }];
+    if (found) {
+      return [200, { team: found, members: found.members, submissions: found.submissions }];
+    }
     // Fallback to main mock team
-    return [200, { team: MOCK_TEAM_DETAILS }];
+    return [200, { team: MOCK_TEAM_DETAILS, members: MOCK_TEAM_DETAILS.members, submissions: MOCK_TEAM_DETAILS.submissions }];
   });
 
-  // Update team status
-  mock.onPatch(/\/admin\/teams\/\d+\/status/).reply((config) => {
+  // Update team status (backend: POST /admin/team/{id}/status)
+  mock.onPost(/\/admin\/team\/\d+\/status/).reply((config) => {
     const body = JSON.parse(config.data || "{}");
-    const id = parseInt(config.url?.split("/")[3] || "0", 10);
+    const urlParts = config.url?.split("/") || [];
+    const id = parseInt(urlParts[3] || "0", 10);
     const team = MOCK_TEAMS_LIST.find((t) => t.team_id === id);
     if (team) team.status = body.status || team.status;
     return [200, { message: "Team status updated" }];
   });
 
-  // Submit review score
-  mock.onPost(/\/admin\/teams\/\d+\/review/).reply((config) => {
+  // Get submission details with reviews (for admin judging panel)
+  mock.onGet(/\/admin\/submission\/\d+$/).reply((config) => {
+    const submissionId = parseInt(config.url?.split("/").pop() || "0", 10);
+    // Find the team that owns this submission
+    const teamWithSub = MOCK_TEAMS_LIST.find((t) =>
+      t.submissions.some((s) => s.submission_id === submissionId)
+    );
+    return [200, {
+      submission: teamWithSub?.submissions.find((s) => s.submission_id === submissionId) || null,
+      reviews: teamWithSub?.reviews || [],
+    }];
+  });
+
+  // Submit review score (backend: POST /reviews/submission/{submission_id})
+  mock.onPost(/\/reviews\/submission\/\d+/).reply((config) => {
     const body = JSON.parse(config.data || "{}");
-    const id = parseInt(config.url?.split("/")[3] || "0", 10);
-    const team = MOCK_TEAMS_LIST.find((t) => t.team_id === id);
+    const submissionId = parseInt(config.url?.split("/").pop() || "0", 10);
+    const team = MOCK_TEAMS_LIST.find((t) =>
+      t.submissions.some((s) => s.submission_id === submissionId)
+    );
     if (team) {
       if (!team.reviews) team.reviews = [];
-      team.reviews.push({ judge_id: 99, score: body.score || 0, comments: body.comments || "" });
+      team.reviews.push({
+        judge_id: 99,
+        innovation_score: body.innovation_score || 0,
+        technical_complexity_score: body.technical_complexity_score || 0,
+        completeness_score: body.completeness_score || 0,
+        presentation_score: body.presentation_score || 0,
+        scalability_score: body.scalability_score || 0,
+        impact_score: body.impact_score || 0,
+        comments: body.comments || "",
+      });
     }
     return [201, { message: "Review submitted" }];
   });
 
-  // Hackathon phase control
-  mock.onGet("/admin/phase").reply(200, { currentPhase: "Review 1" });
+  // Hackathon phase control (backend: GET/POST /admin/timeline/phase)
+  mock.onGet("/admin/timeline/phase").reply(200, { currentPhase: "Review 1" });
 
-  mock.onPost("/admin/phase").reply((config) => {
+  mock.onPost("/admin/timeline/phase").reply((config) => {
     const body = JSON.parse(config.data || "{}");
     return [200, { message: "Phase updated", currentPhase: body.phase }];
   });
 
-  // Window controls
+  // Batch team status update (backend: POST /admin/teams/batch-status)
+  mock.onPost("/admin/teams/batch-status").reply((config) => {
+    const body = JSON.parse(config.data || "{}");
+    const { team_ids, status } = body;
+    if (team_ids && status) {
+      for (const id of team_ids) {
+        const team = MOCK_TEAMS_LIST.find((t) => t.team_id === id);
+        if (team) team.status = status;
+      }
+    }
+    return [200, { message: "Batch status updated" }];
+  });
+
+  // Window controls (no backend equivalent — kept for local state management)
   mock.onPost("/admin/windows").reply((config) => {
     const body = JSON.parse(config.data || "{}");
     Object.assign(MOCK_WINDOWS, body);

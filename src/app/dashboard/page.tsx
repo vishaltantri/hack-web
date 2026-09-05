@@ -100,7 +100,7 @@ const Dashboard = () => {
       try {
         const [homeRes, submissionsRes] = await Promise.all([
           api.get("/users/home"),
-          api.get("/users/submissions"),
+          api.get("/submissions/"),
         ]);
         setDashboardData(homeRes.data);
         setSubmissions(submissionsRes.data.submissions);

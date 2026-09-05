@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import React from "react";
-import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Users,

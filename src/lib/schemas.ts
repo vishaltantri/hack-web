@@ -40,6 +40,18 @@ export const projectSchema = z.object({
     .or(z.literal("")),
 });
 
+export const reviewSchema = z.object({
+  innovation_score: z.number().min(0).max(100).default(0),
+  technical_complexity_score: z.number().min(0).max(100).default(0),
+  completeness_score: z.number().min(0).max(100).default(0),
+  presentation_score: z.number().min(0).max(100).default(0),
+  scalability_score: z.number().min(0).max(100).default(0),
+  impact_score: z.number().min(0).max(100).default(0),
+  comments: z.string().optional(),
+});
+
 export type ProjectFormData = z.infer<typeof projectSchema>;
 export type IdeaFormData = z.infer<typeof ideaSchema>;
 export type LoginFormData = z.infer<typeof loginSchema>;
+export type ReviewFormData = z.infer<typeof reviewSchema>;
+

@@ -24,15 +24,19 @@ export default function MockProvider({
     const token = getToken();
     if (token) {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const decoded: any = jwtDecode(token);
         setRole(decoded.role || "user");
-      } catch (e) {}
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (_e) {}
     }
   }, []);
 
   const toggleRole = () => {
     const newRole = role === "user" ? "admin" : "user";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (typeof window !== "undefined" && (window as any).switchMockUser) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).switchMockUser(newRole);
     }
   };

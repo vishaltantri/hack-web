@@ -11,13 +11,12 @@ import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 import { setToken, getToken, removeToken } from "@/lib/auth";
 import { toast } from "sonner";
-import { whitelist } from "@/lib/data";
 import { jwtDecode } from "jwt-decode";
 
 interface User {
   user_id: number;
   email: string;
-  role: "user" | "admin" | "judge" | "superadmin";
+  role: "participant" | "judge" | "admin";
   team_id: number;
   is_leader: boolean;
   name: string;
@@ -52,11 +51,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           let response;
           if (
             decodedToken.role === "judge" ||
-            decodedToken.role === "superadmin"
+            decodedToken.role === "admin"
           ) {
-            // If it's an admin, call the admin profile endpoint
-            response = await api.get("/admin/me");
-            setUser(response.data.user);
+            // If it's an admin, call the auth profile endpoint
+            response = await api.get("/auth/me");
+            setUser(response.data);
             setIsAdmin(true);
           } else {
             // Otherwise, call the user endpoint
@@ -78,21 +77,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = async (email: string, password: string) => {
-    const isAttemptingAdminLogin = whitelist.includes(email);
-    const loginEndpoint = isAttemptingAdminLogin
-      ? "/auth/admin/login"
-      : "/auth/user/login";
-
     try {
-      const response = await api.post(loginEndpoint, { email, password });
-      const { token: newToken } = response.data;
+      const response = await api.post("/auth/user/login", { email, password });
+      const { access_token: newToken } = response.data;
 
       setToken(newToken);
       setTokenState(newToken);
 
+      const decodedToken: { role?: string } = jwtDecode(newToken);
+      const isAttemptingAdminLogin = decodedToken.role === "admin" || decodedToken.role === "judge";
+
       if (isAttemptingAdminLogin) {
-        const adminProfileRes = await api.get("/admin/me");
-        setUser(adminProfileRes.data.user);
+        const adminProfileRes = await api.get("/auth/me");
+        setUser(adminProfileRes.data);
         setIsAdmin(true);
         router.push("/admin");
       } else {
@@ -103,10 +100,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       toast.success("Login Successful!");
     } catch (error) {
-      const errorMessage =
-        //eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (error as any).response?.data?.message ||
-        "Login failed. Please try again.";
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const errorData = (error as any).response?.data;
+      let errorMessage = "Login failed. Please try again.";
+      if (errorData) {
+        if (typeof errorData.detail === "string") errorMessage = errorData.detail;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        else if (Array.isArray(errorData.detail)) errorMessage = errorData.detail.map((e: any) => e.msg).join(", ");
+        else if (errorData.message) errorMessage = errorData.message;
+      }
       console.error(errorMessage);
       throw new Error(errorMessage);
     }
