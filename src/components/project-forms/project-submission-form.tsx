@@ -1,64 +1,77 @@
 "use client";
 
-import type React from "react";
-
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { easeOut, motion } from "framer-motion";
-import { useForm } from "react-hook-form";
-import { ProjectFormData, projectSchema } from "@/lib/schemas";
-import { zodResolver } from "@hookform/resolvers/zod";
 import api from "@/lib/api";
 import { toast } from "sonner";
-import { Info } from "lucide-react";
 
 interface ProjectSubmissionFormProps {
   onClose: () => void;
   reviewStage: string;
-  submissionType: "review2" | "final";
+  submissionType: "review1" | "review2" | "final";
+  onSuccess?: () => void;
 }
 
 export default function ProjectSubmissionForm({
   onClose,
   reviewStage,
   submissionType,
+  onSuccess,
 }: ProjectSubmissionFormProps) {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<ProjectFormData>({
-    resolver: zodResolver(projectSchema),
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    github_link: "",
+    ppt_link: "",
+    demo_link: "",
+    live_url: "",
+    video_link: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const onSubmit = async (data: ProjectFormData) => {
-    const payload = {
-      title: data.title,
-      description: data.description,
-      type: submissionType,
-      links: {
-        github_link: data.github_link,
-        figma_link: data.figma_link,
-        presentation_link: data.presentation_link,
-      },
-    };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.github_link) {
+      toast.error("GitHub link is mandatory.");
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
-      if (submissionType === "final") {
-        await api.post("/users/submission/final", payload);
+      if (submissionType === "review1") {
+        await api.post("/users/review1", {
+          github_link: formData.github_link,
+          ppt_link: formData.ppt_link || undefined,
+          demo_link: formData.demo_link || undefined,
+          title: formData.title || undefined,
+          description: formData.description || undefined,
+        });
       } else {
-        await api.post("/users/submission/review", payload);
+        await api.post("/users/review2", {
+          github_link: formData.github_link,
+          ppt_link: formData.ppt_link || undefined,
+          live_url: formData.live_url || undefined,
+          video_link: formData.video_link || undefined,
+          title: formData.title || undefined,
+          description: formData.description || undefined,
+        });
       }
-      toast.success("Project submitted successfully!");
+      toast.success(`${reviewStage} submitted successfully!`);
+      if (onSuccess) onSuccess();
       setTimeout(() => {
         onClose();
-      }, 1000); // Close modal after 1 second
+      }, 500);
     } catch (error) {
-      const errorMessage =
-        //eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (error as any).response?.data?.message || "Failed to submit project.";
-      toast.error(errorMessage);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const msg = (error as any)?.response?.data?.detail || (error as any)?.response?.data?.message || "Failed to submit project.";
+      toast.error(typeof msg === "string" ? msg : JSON.stringify(msg));
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
 
   const handleCancel = () => {
     onClose();
@@ -84,96 +97,105 @@ export default function ProjectSubmissionForm({
             </p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-2xl block text-white font-medium mb-1">
-                Idea Name
+              <label className="text-xl block text-white font-medium mb-1">
+                Project Title
               </label>
               <Input
                 type="text"
-                placeholder="Enter the name of your idea"
-                {...register("title")}
-                className="w-full bg-white text-black border-2 border-black rounded-lg px-4 py-3  placeholder:text-gray-400 focus:ring-1 focus:ring-blue-300"
+                placeholder="Enter project title"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                className="w-full bg-white text-black border-2 border-black rounded-lg px-4 py-2.5 placeholder:text-gray-400 focus:ring-1 focus:ring-blue-300"
               />
-              {errors.title && (
-                <p className="text-red-400 mt-1 text-sm flex items-center">
-                  <Info size={16} className="mr-1" />
-                  {errors.title.message}
-                </p>
-              )}
             </div>
 
             <div>
-              <label className="text-2xl block text-white font-medium mb-1">
+              <label className="text-xl block text-white font-medium mb-1">
                 Description
               </label>
               <Input
                 type="text"
-                placeholder="Enter a brief description of your idea"
-                {...register("description")}
-                className="w-full bg-white text-black border-2 border-black rounded-lg px-4 py-3  placeholder:text-gray-400 focus:ring-1 focus:ring-blue-300"
+                placeholder="Brief description of progress / solution"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                className="w-full bg-white text-black border-2 border-black rounded-lg px-4 py-2.5 placeholder:text-gray-400 focus:ring-1 focus:ring-blue-300"
               />
-              {errors.description && (
-                <p className="text-red-400 mt-1 text-sm flex items-center">
-                  <Info size={16} className="mr-1" />
-                  {errors.description.message}
-                </p>
-              )}
             </div>
 
             <div>
-              <label className="text-2xl block text-white font-medium mb-1">
-                GitHub link
+              <label className="text-xl block text-white font-medium mb-1 flex items-center justify-between">
+                <span>GitHub Repository Link</span>
+                <span className="text-[#F67C1B] text-xs font-bold uppercase tracking-wider">Mandatory</span>
               </label>
               <Input
-                type="text"
-                placeholder="Enter your GitHub link"
-                {...register("github_link")}
-                className="w-full bg-white text-black border-2 border-black rounded-lg px-4 py-3 placeholder:text-gray-400 focus:ring-1 focus:ring-blue-300"
+                type="url"
+                required
+                placeholder="https://github.com/your-team/repo"
+                value={formData.github_link}
+                onChange={(e) => setFormData({ ...formData, github_link: e.target.value })}
+                className="w-full bg-white text-black border-2 border-black rounded-lg px-4 py-2.5 placeholder:text-gray-400 focus:ring-1 focus:ring-blue-300"
               />
-              {errors.github_link && (
-                <p className="text-red-400 mt-1 text-sm flex items-center">
-                  <Info size={16} className="mr-1" />
-                  {errors.github_link.message}
-                </p>
-              )}
             </div>
 
             <div>
-              <label className="text-2xl block text-white font-medium mb-1">
-                Figma link
+              <label className="text-xl block text-white font-medium mb-1">
+                Presentation / PPT Link (Optional)
               </label>
               <Input
-                type="text"
-                placeholder="Enter your Figma link"
-                {...register("figma_link")}
-                className="w-full bg-white text-black border-2 border-black rounded-lg px-4 py-3 placeholder:text-gray-400 focus:ring-1 focus:ring-blue-300"
+                type="url"
+                placeholder="https://docs.google.com/presentation/d/..."
+                value={formData.ppt_link}
+                onChange={(e) => setFormData({ ...formData, ppt_link: e.target.value })}
+                className="w-full bg-white text-black border-2 border-black rounded-lg px-4 py-2.5 placeholder:text-gray-400 focus:ring-1 focus:ring-blue-300"
               />
-              {errors.figma_link && (
-                <p className="text-red-400 mt-1 text-sm flex items-center">
-                  <Info size={16} className="mr-1" />
-                  {errors.figma_link.message}
-                </p>
-              )}
             </div>
 
-            <div>
-              <label className="text-2xl block text-white font-medium mb-1">
-                Presentation Link
-              </label>
-              <Input
-                type="text"
-                placeholder="Enter your Figma link"
-                {...register("presentation_link")}
-                className="w-full bg-white text-black border-2 border-black rounded-lg px-4 py-3 placeholder:text-gray-400 focus:ring-1 focus:ring-blue-300"
-              />
-              {errors.presentation_link && (
-                <p className="text-red-400 mt-1 text-sm flex items-center">
-                  <Info size={16} className="mr-1" />
-                  {errors.presentation_link.message}
-                </p>
-              )}
-            </div>
+            {submissionType === "review1" && (
+              <div>
+                <label className="text-xl block text-white font-medium mb-1">
+                  Demo Link (Optional)
+                </label>
+                <Input
+                  type="url"
+                  placeholder="https://youtube.com/demo or prototype link"
+                  value={formData.demo_link}
+                  onChange={(e) => setFormData({ ...formData, demo_link: e.target.value })}
+                  className="w-full bg-white text-black border-2 border-black rounded-lg px-4 py-2.5 placeholder:text-gray-400 focus:ring-1 focus:ring-blue-300"
+                />
+              </div>
+            )}
+
+            {(submissionType === "review2" || submissionType === "final") && (
+              <>
+                <div>
+                  <label className="text-xl block text-white font-medium mb-1">
+                    Live / Deployed URL (Optional)
+                  </label>
+                  <Input
+                    type="url"
+                    placeholder="https://your-deployed-app.vercel.app"
+                    value={formData.live_url}
+                    onChange={(e) => setFormData({ ...formData, live_url: e.target.value })}
+                    className="w-full bg-white text-black border-2 border-black rounded-lg px-4 py-2.5 placeholder:text-gray-400 focus:ring-1 focus:ring-blue-300"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xl block text-white font-medium mb-1">
+                    Video Demonstration URL (Optional)
+                  </label>
+                  <Input
+                    type="url"
+                    placeholder="https://youtu.be/final-pitch-video"
+                    value={formData.video_link}
+                    onChange={(e) => setFormData({ ...formData, video_link: e.target.value })}
+                    className="w-full bg-white text-black border-2 border-black rounded-lg px-4 py-2.5 placeholder:text-gray-400 focus:ring-1 focus:ring-blue-300"
+                  />
+                </div>
+              </>
+            )}
 
             <div className="flex items-center justify-between pt-4">
               <Button

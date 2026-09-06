@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { AnimatePresence, easeOut, motion } from "framer-motion";
 import { useState } from "react";
-// import SignInForm from "./auth-forms/signin-form";
+import SignInForm from "./auth-forms/signin-form";
 import LogInForm from "./auth-forms/login-form";
 
 export default function Welcome() {
@@ -13,8 +13,9 @@ export default function Welcome() {
     damping: 20,
     stiffness: 100,
   };
-  // const [isSignInOpen, setIsSignInOpen] = useState(false);
+  const [isSignInOpen, setIsSignInOpen] = useState(false);
   const [isLogInOpen, setIsLogInOpen] = useState(false);
+
 
   return (
     <div className="max-h-screen bg-[#fefefe] overflow-hidden relative">
@@ -133,12 +134,12 @@ export default function Welcome() {
             </p>
           </div>
           <div className="flex justify-center gap-8">
-            {/* <Button
+            <Button
               onClick={() => setIsSignInOpen(true)}
               className="anta bg-gradient-to-r from-[#FF9811] via-[#FE751A] to-[#FC2D2D] text-white font-bold text-2xl px-12 py-6 rounded-full shadow-lg transform transition-all duration-200 hover:scale-105"
             >
               SIGN UP
-            </Button> */}
+            </Button>
             <Button
               onClick={() => setIsLogInOpen(true)}
               className="anta bg-gradient-to-r from-[#FC2D2D] via-[#FE751A] to-[#FF9811] text-white font-bold text-2xl px-12 py-6 rounded-full shadow-lg transform transition-all duration-200 hover:scale-105"
@@ -148,7 +149,7 @@ export default function Welcome() {
           </div>
         </div>
       </motion.div>
-      {/* <AnimatePresence>
+      <AnimatePresence>
         {isSignInOpen && (
           <>
             <motion.div
@@ -168,7 +169,7 @@ export default function Welcome() {
             </div>
           </>
         )}
-      </AnimatePresence> */}
+      </AnimatePresence>
       <AnimatePresence>
         {isLogInOpen && (
           <>

@@ -3,16 +3,17 @@
 import withAuth from "@/components/auth/withAuth";
 import ProjectModifyForm from "@/components/project-forms/project-modify-form";
 import ProjectSubmissionForm from "@/components/project-forms/project-submission-form";
+import Review0Modal from "@/components/project-forms/review0-modal";
+import LeaderboardModal from "@/components/leaderboard-modal";
 import Timeline from "@/components/timeline";
 import TrackModal from "@/components/track-modal";
 import { Button } from "@/components/ui/button";
 
 import { useAuth } from "@/hooks/useAuth";
 import api from "@/lib/api";
-import { trackinfo, tracks } from "@/lib/data";
+import { trackinfo, tracks as defaultTracks } from "@/lib/data";
 import { AnimatePresence, easeOut, motion } from "framer-motion";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -22,6 +23,9 @@ import {
   CheckCircle2,
   ArrowRight,
   Lightbulb,
+  Trophy,
+  AlertTriangle,
+  Lock,
 } from "lucide-react";
 
 interface Member {
@@ -34,39 +38,46 @@ interface Member {
 interface Team {
   team_id: number;
   team_name: string;
-  track_name: string;
+  track_id?: number;
+  track_name?: string;
+  problem_statement_id?: number;
+  problem_statement?: {
+    id: number;
+    title: string;
+    description: string;
+  } | null;
+  status: string;
+  is_eliminated?: boolean;
 }
 
 interface Submission {
   submission_id: number;
-  type: "review1" | "review2" | "final";
-  title: string;
-  description: string;
-  links?: {
-    presentation_link?: string;
-    github_link?: string;
-    figma_link?: string;
-    file?: string;
-  };
+  type: string;
+  title?: string;
+  description?: string;
+  links?: Record<string, string>;
+  status?: string;
 }
 
 interface DashboardData {
   user: {
     user_id: number;
     name: string;
+    email: string;
+    role: string;
     is_leader: boolean;
   };
-  team: Team;
+  team: Team | null;
   members: Member[];
   windows: {
-    review1: boolean;
-    review2: boolean;
-    final: boolean;
+    review0?: boolean;
+    review1?: boolean;
+    review2?: boolean;
   };
   currentPhase: string;
 }
 
-// Map track names to their specific accent colors for the Figma design
+// Map track names to their specific accent colors
 const trackColors: Record<string, string> = {
   "AI and Mathematical Modelling": "#7C3AED", // Purple
   "Cyber Security": "#2563EB", // Blue
@@ -79,57 +90,69 @@ const trackColors: Record<string, string> = {
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const router = useRouter();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTrack, setSelectedTrack] = useState<(typeof trackinfo)[0] | null>(null);
+  const [isReview0ModalOpen, setIsReview0ModalOpen] = useState(false);
   const [isProjectSubmitModalOpen, setIsProjectSubmitModalOpen] = useState(false);
   const [isProjectModifyModalOpen, setIsProjectModifyModalOpen] = useState(false);
+  const [isLeaderboardModalOpen, setIsLeaderboardModalOpen] = useState(false);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [tracks, setTracks] = useState<typeof defaultTracks>(defaultTracks);
 
-  const getCurrentReviewStage = () => {
-    if (dashboardData?.windows?.final) return "Final Review";
-    if (dashboardData?.windows?.review2) return "Review 2";
-    if (dashboardData?.windows?.review1) return "Review 1";
-    return "";
+  const fetchDashboardData = async () => {
+    try {
+      const [homeRes, submissionsRes, tracksRes] = await Promise.all([
+        api.get("/users/home"),
+        api.get("/users/submissions").catch(() => api.get("/submissions/")),
+        api.get("/teams/tracks").catch(() => ({ data: defaultTracks })),
+      ]);
+      setDashboardData(homeRes.data);
+      setSubmissions(submissionsRes.data.submissions || []);
+      if (Array.isArray(tracksRes.data) && tracksRes.data.length > 0) {
+        setTracks(tracksRes.data);
+      }
+    } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const errorMessage = (error as any)?.response?.data?.message || "Failed to load dashboard.";
+      toast.error(errorMessage);
+      console.error("Error fetching dashboard data:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [homeRes, submissionsRes] = await Promise.all([
-          api.get("/users/home"),
-          api.get("/submissions/"),
-        ]);
-        setDashboardData(homeRes.data);
-        setSubmissions(submissionsRes.data.submissions);
-      } catch (error) {
-        const errorMessage =
-          //eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (error as any)?.response?.data?.message || "Failed to load dashboard.";
-        toast.error(errorMessage);
-        console.error("Error fetching dashboard data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchData();
+    fetchDashboardData();
   }, []);
 
-  const existingIdeaSubmission = useMemo(
+  const existingReview1Submission = useMemo(
     () => submissions.find((s) => s.type === "review1"),
     [submissions]
   );
 
+  const existingReview2Submission = useMemo(
+    () => submissions.find((s) => s.type === "review2" || s.type === "final"),
+    [submissions]
+  );
+
   const submissionForCurrentPhase = useMemo(() => {
-    if (!dashboardData?.currentPhase) return null;
-    if (dashboardData.currentPhase === "Review 2")
-      return submissions.find((s) => s.type === "review2");
-    if (dashboardData.currentPhase === "Final Review")
-      return submissions.find((s) => s.type === "final");
+    if (dashboardData?.windows?.review2) return existingReview2Submission || null;
+    if (dashboardData?.windows?.review1) return existingReview1Submission || null;
     return null;
-  }, [submissions, dashboardData?.currentPhase]);
+  }, [dashboardData?.windows, existingReview1Submission, existingReview2Submission]);
+
+  const getCurrentReviewStage = () => {
+    if (dashboardData?.windows?.review2) return "Final Review (Review 2)";
+    if (dashboardData?.windows?.review1) return "Review 1";
+    if (dashboardData?.windows?.review0) return "Review 0";
+    return dashboardData?.currentPhase || "";
+  };
+
+  const isEliminated = useMemo(() => {
+    return dashboardData?.team?.status?.toLowerCase() === "rejected" || !!dashboardData?.team?.is_eliminated;
+  }, [dashboardData?.team]);
 
   const handleTrackClick = (trackName: string) => {
     const trackData = trackinfo.find((t) => t.name === trackName);
@@ -149,24 +172,28 @@ const Dashboard = () => {
   }, [dashboardData?.members]);
 
   const getButtonState = () => {
+    if (isEliminated) {
+      return { text: "Team Eliminated", action: "eliminated" };
+    }
+
     const { windows } = dashboardData || {};
-    const { currentPhase } = dashboardData || {};
+    if (windows?.review0) {
+      const hasPs = !!dashboardData?.team?.problem_statement_id;
+      return {
+        text: hasPs ? "Review 0: Change PS" : "Review 0: Select PS",
+        action: "review0",
+      };
+    }
     if (windows?.review1) {
       return {
-        text: existingIdeaSubmission ? "Modify Idea" : "Submit Idea",
-        action: "idea",
+        text: existingReview1Submission ? "Modify Review 1" : "Submit Review 1",
+        action: "review1",
       };
     }
-    if (currentPhase === "Review 2" && windows?.review2) {
+    if (windows?.review2) {
       return {
-        text: submissionForCurrentPhase ? "Modify Project" : "Submit Project",
+        text: existingReview2Submission ? "Modify Final Project" : "Submit Final Project",
         action: "review2",
-      };
-    }
-    if (currentPhase === "Final Review" && windows?.final) {
-      return {
-        text: submissionForCurrentPhase ? "Modify Project" : "Submit Project",
-        action: "final",
       };
     }
     return { text: "Submissions Closed", action: "closed" };
@@ -179,19 +206,26 @@ const Dashboard = () => {
     }
     const { action } = getButtonState();
     switch (action) {
-      case "idea": {
-        const route = existingIdeaSubmission ? "/idea-modification" : "/idea-submission";
-        router.push(route);
+      case "review0": {
+        setIsReview0ModalOpen(true);
         break;
       }
-      case "review2":
-      case "final":
-        if (submissionForCurrentPhase) {
+      case "review1": {
+        if (existingReview1Submission) {
           setIsProjectModifyModalOpen(true);
         } else {
           setIsProjectSubmitModalOpen(true);
         }
         break;
+      }
+      case "review2": {
+        if (existingReview2Submission) {
+          setIsProjectModifyModalOpen(true);
+        } else {
+          setIsProjectSubmitModalOpen(true);
+        }
+        break;
+      }
       default:
         break;
     }
@@ -207,6 +241,7 @@ const Dashboard = () => {
 
   const buttonState = getButtonState();
   const currentPhase = dashboardData?.currentPhase || "Participants reach";
+
 
   return (
     <div className="h-screen w-full flex overflow-hidden bg-[#F6F7FA] text-[#11152B] font-sans">
@@ -247,13 +282,34 @@ const Dashboard = () => {
               </p>
             </div>
             
-            {dashboardData?.currentPhase && (
-              <div className="flex items-center gap-2 bg-white px-5 py-2 rounded-full border border-[#F67C1B]/50 shadow-sm text-[#11152B] font-bold">
-                <Star className="w-4 h-4 text-[#F67C1B] fill-current" />
-                <span>{dashboardData.currentPhase} Phase</span>
-              </div>
-            )}
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={() => setIsLeaderboardModalOpen(true)}
+                variant="outline"
+                className="flex items-center gap-2 bg-white hover:bg-gray-50 text-[#11152B] border-gray-200 rounded-full px-5 py-2 font-bold shadow-sm h-auto transition-transform hover:scale-105"
+              >
+                <Trophy className="w-4 h-4 text-[#F67C1B]" />
+                <span>Leaderboard</span>
+              </Button>
+
+              {dashboardData?.currentPhase && (
+                <div className="flex items-center gap-2 bg-white px-5 py-2 rounded-full border border-[#F67C1B]/50 shadow-sm text-[#11152B] font-bold">
+                  <Star className="w-4 h-4 text-[#F67C1B] fill-current" />
+                  <span>{dashboardData.currentPhase} Phase</span>
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* ── ELIMINATED BANNER ───────────────────────────────────────── */}
+          {isEliminated && (
+            <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-4 mb-6 flex items-center gap-3 text-red-700 shadow-sm">
+              <AlertTriangle className="w-6 h-6 text-red-500 flex-shrink-0" />
+              <div>
+                <strong className="font-bold text-red-800">Team Eliminated:</strong> Your team was eliminated during Review 1 evaluations. Further project submissions are locked.
+              </div>
+            </div>
+          )}
 
           {/* ── TOP BENTO CARDS ─────────────────────────────────────────── */}
           <div className="grid grid-cols-2 gap-6 mb-10 h-[380px]">
@@ -275,31 +331,43 @@ const Dashboard = () => {
                     {dashboardData?.team?.team_name || "Your Team"}
                   </h3>
                 </div>
-                <button className="text-white/40 hover:text-white/80 transition-colors">
-                  <Edit2 className="w-4 h-4" />
-                </button>
+                {dashboardData?.windows?.review0 && user?.is_leader && (
+                  <button
+                    onClick={() => setIsReview0ModalOpen(true)}
+                    className="text-white/60 hover:text-[#F67C1B] transition-colors flex items-center gap-1.5 text-xs bg-white/5 px-2.5 py-1 rounded-full border border-white/10"
+                    title="Change Track & Problem Statement"
+                  >
+                    <Edit2 className="w-3 h-3" />
+                    <span>Change PS</span>
+                  </button>
+                )}
               </div>
 
               {/* Card Body */}
               <div className="flex gap-6 h-full">
                 {/* Left side: Icon and Tagline */}
                 <div className="w-[45%] flex flex-col items-center justify-center text-center">
-                  <div className="w-32 h-32 rounded-full bg-gradient-to-b from-[#1E254A] to-[#151932] shadow-inner flex items-center justify-center mb-6 relative border border-white/5">
+                  <div className="w-28 h-28 rounded-full bg-gradient-to-b from-[#1E254A] to-[#151932] shadow-inner flex items-center justify-center mb-4 relative border border-white/5">
                     {/* Simplified Team Graphic matching the Figma vibe */}
-                    <div className="absolute top-4 w-12 h-12 bg-[#F67C1B] rounded-full left-1/2 -translate-x-1/2"></div>
-                    <div className="absolute bottom-6 w-20 h-10 bg-[#F67C1B] rounded-t-full left-1/2 -translate-x-1/2"></div>
-                    <div className="absolute -bottom-2 w-8 h-8 bg-white rounded-full flex items-center justify-center text-[#F67C1B] font-bold text-lg shadow-md border-2 border-[#151932]">
+                    <div className="absolute top-3 w-10 h-10 bg-[#F67C1B] rounded-full left-1/2 -translate-x-1/2"></div>
+                    <div className="absolute bottom-5 w-16 h-8 bg-[#F67C1B] rounded-t-full left-1/2 -translate-x-1/2"></div>
+                    <div className="absolute -bottom-2 w-7 h-7 bg-white rounded-full flex items-center justify-center text-[#F67C1B] font-bold text-base shadow-md border-2 border-[#151932]">
                       ?
                     </div>
                   </div>
-                  <h4 className="text-white/90 font-bold text-sm leading-snug tracking-wider mb-4 px-4 uppercase">
+                  <h4 className="text-white/90 font-bold text-xs leading-snug tracking-wider mb-2 px-2 uppercase">
                     The Squad That Makes It Happen!
                   </h4>
-                  <div className="px-3 py-1.5 border border-[#F67C1B] rounded-md">
+                  <div className="px-3 py-1 border border-[#F67C1B] rounded-md mb-1">
                     <span className="text-[#F67C1B] text-[10px] font-bold uppercase tracking-wider">
-                      {dashboardData?.team?.track_name || "No Track"}
+                      {dashboardData?.team?.track_name || "No Track Selected"}
                     </span>
                   </div>
+                  {dashboardData?.team?.problem_statement?.title && (
+                    <p className="text-white/70 text-[11px] leading-tight line-clamp-2 px-1 italic">
+                      PS: {dashboardData.team.problem_statement.title}
+                    </p>
+                  )}
                 </div>
 
                 {/* Right side: Member list */}
@@ -368,31 +436,54 @@ const Dashboard = () => {
 
                  {/* Right Content */}
                  <div className="w-1/2 pl-6 flex flex-col justify-center">
-                    <h2 className="text-white text-4xl font-bold leading-[1.1] mb-6">
+                    <h2 className="text-white text-4xl font-bold leading-[1.1] mb-4">
                       Turn your ideas<br />into reality
                     </h2>
 
-                    {existingIdeaSubmission && (
-                      <div className="w-max mb-6">
-                        <div className="flex items-center gap-2 bg-[#4ADE80]/20 text-[#4ADE80] border border-[#4ADE80]/40 px-4 py-2 rounded-full font-bold text-sm shadow-[0_0_15px_rgba(74,222,128,0.2)]">
-                          <CheckCircle2 className="w-4 h-4 fill-current text-[#151932]" />
-                          Idea Submitted!
+                    {/* Status badges */}
+                    <div className="space-y-1.5 mb-4">
+                      {dashboardData?.team?.problem_statement_id && (
+                        <div className="w-max">
+                          <div className="flex items-center gap-1.5 bg-blue-500/20 text-blue-300 border border-blue-500/40 px-3 py-1 rounded-full font-bold text-xs">
+                            <Lock className="w-3 h-3" />
+                            Track & PS Locked
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                      {existingReview1Submission && (
+                        <div className="w-max">
+                          <div className="flex items-center gap-1.5 bg-[#4ADE80]/20 text-[#4ADE80] border border-[#4ADE80]/40 px-3 py-1 rounded-full font-bold text-xs shadow-[0_0_15px_rgba(74,222,128,0.2)]">
+                            <CheckCircle2 className="w-3 h-3 fill-current text-[#151932]" />
+                            Review 1 Submitted
+                          </div>
+                        </div>
+                      )}
+                      {existingReview2Submission && (
+                        <div className="w-max">
+                          <div className="flex items-center gap-1.5 bg-purple-500/20 text-purple-300 border border-purple-500/40 px-3 py-1 rounded-full font-bold text-xs">
+                            <CheckCircle2 className="w-3 h-3 fill-current text-[#151932]" />
+                            Final Project Submitted
+                          </div>
+                        </div>
+                      )}
+                    </div>
 
                     <Button
                       onClick={handleButtonClick}
-                      disabled={buttonState.action === "closed"}
-                      className="group relative flex items-center justify-between w-[220px] bg-gradient-to-r from-[#FF512F] to-[#F09819] hover:from-[#F09819] hover:to-[#FF512F] text-white font-bold text-lg px-6 py-7 rounded-full shadow-[0_8px_20px_rgba(246,124,27,0.3)] hover:shadow-[0_12px_25px_rgba(246,124,27,0.4)] transition-all duration-300 transform hover:-translate-y-1 disabled:opacity-50 disabled:hover:translate-y-0"
+                      disabled={buttonState.action === "closed" || buttonState.action === "eliminated"}
+                      className="group relative flex items-center justify-between w-[240px] bg-gradient-to-r from-[#FF512F] to-[#F09819] hover:from-[#F09819] hover:to-[#FF512F] text-white font-bold text-base px-6 py-6 rounded-full shadow-[0_8px_20px_rgba(246,124,27,0.3)] hover:shadow-[0_12px_25px_rgba(246,124,27,0.4)] transition-all duration-300 transform hover:-translate-y-1 disabled:opacity-50 disabled:hover:translate-y-0"
                     >
                       <span>{buttonState.text}</span>
                       <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm">
                          <ArrowRight className="w-4 h-4 text-[#F67C1B] group-hover:translate-x-0.5 transition-transform" />
                       </div>
                     </Button>
-                    {buttonState.action === "closed" && (
-                      <span className="text-white/40 text-xs mt-3 block">Submissions are currently closed.</span>
+                    {(buttonState.action === "closed" || buttonState.action === "eliminated") && (
+                      <span className="text-white/40 text-xs mt-2 block">
+                        {buttonState.action === "eliminated"
+                          ? "Eliminated teams cannot submit."
+                          : "Submissions are currently closed."}
+                      </span>
                     )}
                  </div>
                </div>
@@ -410,6 +501,8 @@ const Dashboard = () => {
             <div className="flex justify-between gap-4">
               {tracks.map((track) => {
                 const detail = trackinfo.find((t) => t.name === track.name);
+                const dt = defaultTracks.find((t) => t.name === track.name);
+                const logo = track.logo || dt?.logo || "/ai.webp";
                 const psCount = detail?.problem_statements.length ?? 0;
                 const accentColor = trackColors[track.name] || "#11152B";
 
@@ -434,7 +527,7 @@ const Dashboard = () => {
                         style={{ backgroundColor: accentColor }}
                       />
                       <Image
-                        src={track.logo}
+                        src={logo}
                         alt={track.name}
                         width={90}
                         height={90}
@@ -486,6 +579,52 @@ const Dashboard = () => {
         )}
       </AnimatePresence>
 
+      {/* ── REVIEW 0 MODAL ────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {isReview0ModalOpen && (
+          <>
+            <motion.div
+              className="fixed inset-0 z-40 backdrop-blur-sm bg-[#11152B]/40"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ ease: easeOut, duration: 0.3 }}
+            />
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <Review0Modal
+                onClose={() => setIsReview0ModalOpen(false)}
+                onSuccess={fetchDashboardData}
+                currentTrackId={dashboardData?.team?.track_id}
+                currentProblemStatementId={dashboardData?.team?.problem_statement_id}
+              />
+            </div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* ── LEADERBOARD MODAL ───────────────────────────────────────────── */}
+      <AnimatePresence>
+        {isLeaderboardModalOpen && (
+          <>
+            <motion.div
+              className="fixed inset-0 z-40 backdrop-blur-sm bg-[#11152B]/60"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ ease: easeOut, duration: 0.3 }}
+              onClick={() => setIsLeaderboardModalOpen(false)}
+            />
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+              onClick={() => setIsLeaderboardModalOpen(false)}
+            >
+              <LeaderboardModal onClose={() => setIsLeaderboardModalOpen(false)} />
+            </div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* ── PROJECT SUBMISSION MODAL ────────────────────────────────────── */}
       <AnimatePresence>
         {isProjectSubmitModalOpen && (
           <>
@@ -500,13 +639,15 @@ const Dashboard = () => {
               <ProjectSubmissionForm
                 reviewStage={getCurrentReviewStage()}
                 onClose={() => setIsProjectSubmitModalOpen(false)}
-                submissionType={getButtonState().action as "review2" | "final"}
+                onSuccess={fetchDashboardData}
+                submissionType={dashboardData?.windows?.review2 ? "review2" : "review1"}
               />
             </div>
           </>
         )}
       </AnimatePresence>
 
+      {/* ── PROJECT MODIFY MODAL ────────────────────────────────────────── */}
       <AnimatePresence>
         {isProjectModifyModalOpen && submissionForCurrentPhase && (
           <>
@@ -522,7 +663,12 @@ const Dashboard = () => {
                 reviewStage={getCurrentReviewStage()}
                 submission={submissionForCurrentPhase}
                 onClose={() => setIsProjectModifyModalOpen(false)}
-                submissionType={submissionForCurrentPhase.type as "review2" | "final"}
+                onSuccess={fetchDashboardData}
+                submissionType={
+                  (submissionForCurrentPhase.type === "review2" || submissionForCurrentPhase.type === "final"
+                    ? "review2"
+                    : "review1") as "review1" | "review2" | "final"
+                }
               />
             </div>
           </>

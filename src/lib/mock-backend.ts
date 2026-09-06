@@ -202,10 +202,10 @@ interface MockReview {
   judge_id: number;
   innovation_score: number;
   technical_complexity_score: number;
-  completeness_score: number;
+  feasibility_score: number;
+  ui_ux_score: number;
   presentation_score: number;
-  scalability_score: number;
-  impact_score: number;
+  progress_score: number;
   comments: string;
 }
 
@@ -230,10 +230,10 @@ const MOCK_TEAM_DETAILS: MockTeamDetails = {
       judge_id: 99,
       innovation_score: 85,
       technical_complexity_score: 78,
-      completeness_score: 72,
+      feasibility_score: 72,
+      ui_ux_score: 80,
       presentation_score: 90,
-      scalability_score: 80,
-      impact_score: 88,
+      progress_score: 88,
       comments:
         "Strong idea with clear problem understanding. GNN approach is innovative. Work on the demo.",
     },
@@ -290,10 +290,10 @@ for (let i = 0; i < 12; i++) {
               judge_id: 99,
               innovation_score: 70 + i * 2,
               technical_complexity_score: 65 + i * 3,
-              completeness_score: 60 + i * 2,
+              feasibility_score: 60 + i * 2,
+              ui_ux_score: 68 + i * 2,
               presentation_score: 75 + i,
-              scalability_score: 68 + i * 2,
-              impact_score: 72 + i * 2,
+              progress_score: 72 + i * 2,
               comments: `Good work by team ${i + 1}. Solid execution.`,
             },
           ]
@@ -356,10 +356,15 @@ export function setupMockBackend() {
   mock.onGet("/submissions/").reply(200, {
     submissions: MOCK_SUBMISSIONS,
   });
-  // Also handle without trailing slash
   mock.onGet("/submissions").reply(200, {
     submissions: MOCK_SUBMISSIONS,
   });
+  mock.onGet("/users/submissions").reply(200, {
+    submissions: MOCK_SUBMISSIONS,
+  });
+
+  // Teams tracks
+  mock.onGet("/teams/tracks").reply(200, []);
 
   // Idea submission (Review 1)
   mock.onPost("/users/submit/review1").reply(async (config) => {
@@ -423,6 +428,7 @@ export function setupMockBackend() {
   // ── Admin endpoints ─────────────────────────────────────────────────────────
 
   // Admin profile
+  mock.onGet("/auth/me").reply(200, MOCK_ADMIN_USER);
   mock.onGet("/admin/me").reply(200, { user: MOCK_ADMIN_USER });
 
   // All teams
@@ -475,10 +481,10 @@ export function setupMockBackend() {
         judge_id: 99,
         innovation_score: body.innovation_score || 0,
         technical_complexity_score: body.technical_complexity_score || 0,
-        completeness_score: body.completeness_score || 0,
+        feasibility_score: body.feasibility_score || 0,
+        ui_ux_score: body.ui_ux_score || 0,
         presentation_score: body.presentation_score || 0,
-        scalability_score: body.scalability_score || 0,
-        impact_score: body.impact_score || 0,
+        progress_score: body.progress_score || 0,
         comments: body.comments || "",
       });
     }

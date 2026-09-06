@@ -17,9 +17,20 @@ interface User {
   user_id: number;
   email: string;
   role: "participant" | "judge" | "admin";
-  team_id: number;
-  is_leader: boolean;
+  team_id?: number;
+  is_leader?: boolean;
   name: string;
+  panel_id?: number;
+}
+
+interface SignupParams {
+  name: string;
+  email: string;
+  password: string;
+  team_name: string;
+  track_id: number;
+  registration_number: string;
+  hostel_block?: string;
 }
 
 interface AuthContextType {
@@ -29,6 +40,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAdmin: boolean;
   login: (email: string, password: string) => Promise<void>;
+  signup: (params: SignupParams) => Promise<void>;
   logout: () => void;
 }
 
@@ -53,12 +65,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             decodedToken.role === "judge" ||
             decodedToken.role === "admin"
           ) {
-            // If it's an admin, call the auth profile endpoint
             response = await api.get("/auth/me");
             setUser(response.data);
             setIsAdmin(true);
           } else {
-            // Otherwise, call the user endpoint
             response = await api.get("/users/home");
             setUser(response.data.user);
             setIsAdmin(false);
@@ -114,20 +124,53 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const logout = async () => {
+  const signup = async (params: SignupParams) => {
     try {
-      await api.post("/auth/logout");
-    } catch (error) {
-      toast.error("Failed to blacklist token on backend");
-      console.error("Logout error:", error);
-    } finally {
-      removeToken();
-      setTokenState(null);
-      setUser(null);
+      const payload = {
+        name: params.name,
+        email: params.email,
+        password: params.password,
+        team_name: params.team_name,
+        track_id: params.track_id,
+        is_leader: true,
+        extra_info: {
+          registration_number: params.registration_number,
+          hostel_block: params.hostel_block || "",
+        },
+      };
+
+      const response = await api.post("/auth/user/signup", payload);
+      const { access_token: newToken } = response.data;
+
+      setToken(newToken);
+      setTokenState(newToken);
+
+      const userProfileRes = await api.get("/users/home");
+      setUser(userProfileRes.data.user);
       setIsAdmin(false);
-      toast.info("You have been logged out.");
-      router.push("/");
+      toast.success("Registration Successful! Welcome to Hackulus.");
+      router.push("/dashboard");
+    } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const errorData = (error as any).response?.data;
+      let errorMessage = "Signup failed. Please check your details.";
+      if (errorData) {
+        if (typeof errorData.detail === "string") errorMessage = errorData.detail;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        else if (Array.isArray(errorData.detail)) errorMessage = errorData.detail.map((e: any) => e.msg).join(", ");
+        else if (errorData.message) errorMessage = errorData.message;
+      }
+      throw new Error(errorMessage);
     }
+  };
+
+  const logout = () => {
+    removeToken();
+    setTokenState(null);
+    setUser(null);
+    setIsAdmin(false);
+    toast.info("You have been logged out.");
+    router.push("/");
   };
 
   const value = {
@@ -137,6 +180,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isLoading,
     isAdmin,
     login,
+    signup,
     logout,
   };
 

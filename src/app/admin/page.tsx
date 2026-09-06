@@ -32,21 +32,16 @@ export interface Team {
   track_name: string;
   status: string;
   members: Member[];
-  problem_statement: string;
-  idea: string;
+  problem_statement?: string;
+  idea?: string;
 }
 
 interface Submission {
   submission_id: number;
-  type: "review1" | "review2" | "final";
-  title: string;
-  description: string;
-  links?: {
-    presentation_link?: string;
-    github_link?: string;
-    figma_link?: string;
-    file?: string;
-  };
+  type: string;
+  title?: string;
+  description?: string;
+  links?: Record<string, string>;
 }
 
 interface TeamDetails extends Team {
@@ -57,16 +52,17 @@ interface Review {
   judge_id: number;
   innovation_score: number;
   technical_complexity_score: number;
-  completeness_score: number;
+  feasibility_score: number;
+  ui_ux_score: number;
   presentation_score: number;
-  scalability_score: number;
-  impact_score: number;
+  progress_score: number;
   comments: string;
 }
 
 const hackathonPhases = [
   "Participants Reach",
   "Ideation",
+  "Review 0",
   "Review 1",
   "Lunch",
   "Speaker Sessions",
@@ -76,14 +72,14 @@ const hackathonPhases = [
   "Final Review",
 ];
 
-// Matches backend ReviewCreateUpdate schema — 6 categories, 0–100 each
+// Matches backend ReviewCreateUpdate schema — exact 6 categories, 0–100 each
 const scoringCategories = [
-  { key: "innovation_score", label: "Innovation" },
+  { key: "innovation_score", label: "Innovation & Originality" },
   { key: "technical_complexity_score", label: "Technical Complexity" },
-  { key: "completeness_score", label: "Completeness" },
-  { key: "presentation_score", label: "Presentation" },
-  { key: "scalability_score", label: "Scalability" },
-  { key: "impact_score", label: "Impact" },
+  { key: "feasibility_score", label: "Feasibility & Practicality" },
+  { key: "ui_ux_score", label: "UI/UX & Design" },
+  { key: "presentation_score", label: "Presentation & Pitch" },
+  { key: "progress_score", label: "Progress & Execution" },
 ];
 
 const AdminDashboard = () => {
@@ -107,6 +103,7 @@ const AdminDashboard = () => {
     () => teams.filter((team) => team.status.toLowerCase() !== "rejected"),
     [teams]
   );
+
 
   const currentTotalScore = useMemo(() => {
     return Object.values(scores).reduce((sum, score) => sum + score, 0);
@@ -292,10 +289,10 @@ const AdminDashboard = () => {
       team_id: selectedTeam.team_id,
       innovation_score: scores["innovation_score"] || 0,
       technical_complexity_score: scores["technical_complexity_score"] || 0,
-      completeness_score: scores["completeness_score"] || 0,
+      feasibility_score: scores["feasibility_score"] || 0,
+      ui_ux_score: scores["ui_ux_score"] || 0,
       presentation_score: scores["presentation_score"] || 0,
-      scalability_score: scores["scalability_score"] || 0,
-      impact_score: scores["impact_score"] || 0,
+      progress_score: scores["progress_score"] || 0,
       comments: comments,
     };
 
