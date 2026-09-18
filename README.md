@@ -21,7 +21,6 @@
 - [Getting Started](#getting-started)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
-- [Contributors](#contributors)
 - [License](#license)
 
 
@@ -96,78 +95,7 @@ The UI is fully responsive (hamburger timeline drawer, stacked cards, scrolling 
 
 The backend must be running (see the `Hackulus_26_BE`/backend README) for pages beyond the landing/login screens to render data.
 
-
-## Contributors
-
-
-<table cellspacing="0" cellpadding="10" align="center">
-  <tr align="center" style="font-weight: bold;">
-    <td>
-      <strong>Rishab Nagwani (Full Stack)</strong>
-      <div>
-        <img src="https://avatars.githubusercontent.com/rxshabN" width="150" height="150" alt="Rishab Nagwani">
-      </div>
-      <div>
-        <a href="https://github.com/rxshabN">
-          <img src="http://www.iconninja.com/files/241/825/211/round-collaboration-social-github-code-circle-network-icon.svg" width="36" height="36" alt="GitHub"/>
-        </a>
-      </div>
-    </td>
-
-    
-   <td>
-      <strong>Janaki Pillai (Frontend)</strong>
-      <div>
-        <img src="https://avatars.githubusercontent.com/jan-pr" width="150" height="150" alt="Nainika Anish">
-      </div>
-      <div>
-        <a href="https://github.com/jan-pr">
-          <img src="http://www.iconninja.com/files/241/825/211/round-collaboration-social-github-code-circle-network-icon.svg" width="36" height="36" alt="GitHub"/>
-        </a>
-      </div>
-    </td>
-
-   <td>
-      <strong>Suhani Singh (Design)</strong>
-      <div>
-        <img src="https://avatars.githubusercontent.com/singhsuhanibaghel" width="150" height="150" alt="Suhani Singh">
-      </div>
-      <div>
-        <a href="https://github.com/singhsuhanibaghel">
-          <img src="http://www.iconninja.com/files/241/825/211/round-collaboration-social-github-code-circle-network-icon.svg" width="36" height="36" alt="GitHub"/>
-        </a>
-      </div>
-    </td>
-
-   <td>
-      <strong>Nainika Anish (Design)</strong>
-      <div>
-        <img src="https://avatars.githubusercontent.com/nainika1105" width="150" height="150" alt="Nainika Anish">
-      </div>
-      <div>
-        <a href="https://github.com/nainika1105">
-          <img src="http://www.iconninja.com/files/241/825/211/round-collaboration-social-github-code-circle-network-icon.svg" width="36" height="36" alt="GitHub"/>
-        </a>
-      </div>
-    </td>
-
-   <td>
-      <strong>Ruhi Adke (Design)</strong>
-      <div>
-        <img src="https://avatars.githubusercontent.com/ruhiadke" width="150" height="150" alt="Ruhi Adke">
-      </div>
-      <div>
-        <a href="https://github.com/ruhiadke">
-          <img src="http://www.iconninja.com/files/241/825/211/round-collaboration-social-github-code-circle-network-icon.svg" width="36" height="36" alt="GitHub"/>
-        </a>
-      </div>
-    </td>
-  </tr>
-</table>
-
-
 ## License
 
 Distributed under the MIT License. See LICENSE for more information.
 
-<p align="center">Made with ❤ by SIAM-VIT</p>
