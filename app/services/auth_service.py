@@ -23,14 +23,10 @@ class AuthService:
             db.add(team)
             await db.flush()
 
-        # PASSWORD HASHING TOGGLE:
-        # Currently using plain text password for simplified dev onboarding.
-        # hashed_pwd = get_password_hash(data.password)
-
         new_user = User(
             name=data.name,
             email=data.email,
-            password_hash=data.password,  # Replace with hashed_pwd when using bcrypt
+            password_hash=get_password_hash(data.password),
             role=UserRole.PARTICIPANT,
         )
         db.add(new_user)
@@ -66,9 +62,11 @@ class AuthService:
         if not user:
             raise HTTPException(status_code=400, detail="Invalid credentials")
 
-        # if not verify_password(data.password, user.password_hash):
-        if user.password_hash != data.password:
-            raise HTTPException(status_code=400, detail="Invalid credentials")
+        # Support both hashed and legacy plaintext hashes (dev DBs seeded before
+        # hashing was enabled) so no existing account is locked out.
+        if not verify_password(data.password, user.password_hash):
+            if user.password_hash != data.password:
+                raise HTTPException(status_code=400, detail="Invalid credentials")
 
         token_payload = {"sub": str(user.user_id), "email": user.email, "role": user.role}
         if user.participant_profile:

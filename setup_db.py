@@ -9,10 +9,7 @@ from app.models.panel import Panel
 from app.models.event_config import EventConfig
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import insert
-from passlib.context import CryptContext
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+from app.core.security import get_password_hash
 
 AsyncSessionLocal = sessionmaker(
     bind=engine,
@@ -32,7 +29,7 @@ async def seed_data():
         admin = User(
             name="Admin",
             email="admin@vitstudent.ac.in",
-            password_hash="Mann309",
+            password_hash=get_password_hash("Mann309"),
             role="admin"
         )
         session.add(admin)
@@ -44,9 +41,11 @@ async def seed_data():
         await session.flush()
 
         # Create PS
-        ps1 = ProblemStatement(track_id=track1.track_id, title="Industrial IoT Predictive Maintenance System", description="...")
-        ps2 = ProblemStatement(track_id=track1.track_id, title="Adaptive Fleet Rerouting", description="...")
-        session.add_all([ps1, ps2])
+        ps1 = ProblemStatement(track_id=track1.track_id, title="Adaptive Fleet Rerouting", description="Design an adaptive rerouting engine for congested city fleets.")
+        ps2 = ProblemStatement(track_id=track1.track_id, title="Industrial IoT Predictive Maintenance System", description="Build an IoT-based predictive maintenance system for industrial equipment.")
+        ps3 = ProblemStatement(track_id=track2.track_id, title="Zero-Trust Campus Network", description="Design a zero-trust authentication layer for campus networks.")
+        ps4 = ProblemStatement(track_id=track2.track_id, title="Phishing Detection Extension", description="Build a browser extension that detects phishing pages in real time.")
+        session.add_all([ps1, ps2, ps3, ps4])
 
         # Create Panel
         panel = Panel(name="Panel 1", description="Room 101")
@@ -57,7 +56,7 @@ async def seed_data():
         judge = User(
             name="Judge 1",
             email="judge1@vitstudent.ac.in",
-            password_hash="BhaiYeKyaHoRahaHai",
+            password_hash=get_password_hash("BhaiYeKyaHoRahaHai"),
             role="judge",
             panel_id=panel.panel_id
         )

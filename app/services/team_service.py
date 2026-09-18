@@ -9,6 +9,7 @@ from app.models.user import User, UserRole
 from app.models.participant_profile import ParticipantProfile
 from app.models.track import Track
 from app.models.problem_statement import ProblemStatement
+from app.core.security import get_password_hash
 from app.schemas.team import AdminCreateTeamRequest, TeamMemberCreate, TeamAssignTrack, TeamBatchStatusUpdate
 
 
@@ -45,7 +46,7 @@ class TeamService:
             user = User(
                 name=member.name,
                 email=member.email,
-                password_hash=pwd,
+                password_hash=get_password_hash(pwd),
                 role=UserRole.PARTICIPANT,
             )
             db.add(user)
@@ -94,7 +95,7 @@ class TeamService:
         new_user = User(
             name=member_data.name,
             email=member_data.email,
-            password_hash=pwd,
+            password_hash=get_password_hash(pwd),
             role=UserRole.PARTICIPANT,
         )
         db.add(new_user)

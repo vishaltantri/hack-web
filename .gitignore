@@ -18,6 +18,9 @@ venv.bak/
 # Uploads & Media
 uploads/
 
+# Local dev database
+hackulus.db
+
 # IDE / Editor files
 .vscode/
 .idea/

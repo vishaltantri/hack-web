@@ -3,7 +3,6 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
-from sqlalchemy.dialects.postgresql import insert
 from app.models.submission import Submission
 from app.models.team import Team, TeamStatus
 from app.models.review import Review
@@ -48,8 +47,9 @@ class ReviewService:
         )
         total_score = data.score if (data.score is not None and category_sum == 0) else category_sum
 
-        # Atomic PostgreSQL Upsert for Review
-        stmt = insert(Review).values(
+        # Dialect-agnostic upsert: works on both SQLite and PostgreSQL
+        # (reviews has UNIQUE(submission_id, judge_id) so one judge has one review per submission)
+        review_fields = dict(
             submission_id=submission_id,
             team_id=team.team_id,
             judge_id=judge.user_id,
@@ -65,24 +65,18 @@ class ReviewService:
             score=total_score,
             comments=data.comments
         )
-        stmt = stmt.on_conflict_do_update(
-            constraint="unique_submission_judge",
-            set_={
-                "team_id": stmt.excluded.team_id,
-                "panel_id": stmt.excluded.panel_id,
-                "track_id": stmt.excluded.track_id,
-                "review_round": stmt.excluded.review_round,
-                "innovation_score": stmt.excluded.innovation_score,
-                "technical_complexity_score": stmt.excluded.technical_complexity_score,
-                "feasibility_score": stmt.excluded.feasibility_score,
-                "ui_ux_score": stmt.excluded.ui_ux_score,
-                "presentation_score": stmt.excluded.presentation_score,
-                "progress_score": stmt.excluded.progress_score,
-                "score": stmt.excluded.score,
-                "comments": stmt.excluded.comments
-            }
+        existing_review_res = await db.execute(
+            select(Review).where(
+                Review.submission_id == submission_id,
+                Review.judge_id == judge.user_id
+            )
         )
-        await db.execute(stmt)
+        existing_review = existing_review_res.scalar_one_or_none()
+        if existing_review:
+            for field, value in review_fields.items():
+                setattr(existing_review, field, value)
+        else:
+            db.add(Review(**review_fields))
 
         # Update Team Status if Admin
         if data.set_team_status and judge.role == UserRole.ADMIN:
