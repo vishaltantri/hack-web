@@ -91,16 +91,16 @@ export default function SignInForm({ onClose }: SignInFormProps) {
 
   return (
     <motion.div
-      className="w-full p-8 rounded-2xl shadow-2xl afacad"
+      className="w-full p-0 sm:p-8 rounded-2xl shadow-2xl afacad"
       initial={{ opacity: 0, y: "100%" }}
       animate={{ opacity: 1, y: "0%" }}
       exit={{ opacity: 0, y: "100%" }}
       transition={{ ease: easeOut, duration: 0.8, delay: 0.2 }}
     >
-      <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
-        <div className="w-full max-w-xl p-10 rounded-2xl shadow-2xl border-r-8 border-b-8 border-black bg-gradient-to-b from-[#010027] via-[#13184E] to-[#3142B4] max-h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-white/20">
+      <div className="relative z-10 flex items-center justify-center min-h-screen-dvh p-4">
+        <div className="w-full max-w-xl p-5 sm:p-10 rounded-2xl shadow-2xl border-r-8 border-b-8 border-black bg-gradient-to-b from-[#010027] via-[#13184E] to-[#3142B4] max-h-[92dvh] overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-white/20">
           <div className="text-left mb-6">
-            <h1 className="text-4xl font-bold text-white mb-2">SIGN UP</h1>
+            <h1 className="text-2xl sm:text-4xl font-bold text-white mb-2">SIGN UP</h1>
             <p className="text-white/80 text-xl">
               Register your team and join Hackulus!
             </p>
@@ -108,7 +108,7 @@ export default function SignInForm({ onClose }: SignInFormProps) {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label className="text-xl block text-white font-medium mb-1">
+              <label className="text-base sm:text-xl block text-white font-medium mb-1">
                 Full Name
               </label>
               <Input
@@ -125,7 +125,7 @@ export default function SignInForm({ onClose }: SignInFormProps) {
             </div>
 
             <div>
-              <label className="text-xl block text-white font-medium mb-1">
+              <label className="text-base sm:text-xl block text-white font-medium mb-1">
                 VIT Student Email
               </label>
               <Input
@@ -143,7 +143,7 @@ export default function SignInForm({ onClose }: SignInFormProps) {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-xl block text-white font-medium mb-1">
+                <label className="text-base sm:text-xl block text-white font-medium mb-1">
                   Reg. Number
                 </label>
                 <Input
@@ -160,7 +160,7 @@ export default function SignInForm({ onClose }: SignInFormProps) {
               </div>
 
               <div>
-                <label className="text-xl block text-white font-medium mb-1">
+                <label className="text-base sm:text-xl block text-white font-medium mb-1">
                   Hostel Block
                 </label>
                 <Input
@@ -173,7 +173,7 @@ export default function SignInForm({ onClose }: SignInFormProps) {
             </div>
 
             <div>
-              <label className="text-xl block text-white font-medium mb-1">
+              <label className="text-base sm:text-xl block text-white font-medium mb-1">
                 Team Name
               </label>
               <Input
@@ -190,7 +190,7 @@ export default function SignInForm({ onClose }: SignInFormProps) {
             </div>
 
             <div>
-              <label className="text-xl block text-white font-medium mb-1">
+              <label className="text-base sm:text-xl block text-white font-medium mb-1">
                 Hackathon Track
               </label>
               <Controller
@@ -217,7 +217,7 @@ export default function SignInForm({ onClose }: SignInFormProps) {
             </div>
 
             <div>
-              <label className="text-xl block text-white font-medium mb-1">
+              <label className="text-base sm:text-xl block text-white font-medium mb-1">
                 Password
               </label>
               <Input

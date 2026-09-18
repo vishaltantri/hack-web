@@ -143,20 +143,20 @@ export default function Review0Modal({
 
   return (
     <motion.div
-      className="w-full p-8 rounded-2xl shadow-2xl afacad"
+      className="w-full p-0 sm:p-8 rounded-2xl shadow-2xl afacad"
       initial={{ opacity: 0, y: "100%" }}
       animate={{ opacity: 1, y: "0%" }}
       exit={{ opacity: 0, y: "100%" }}
       transition={{ ease: easeOut, duration: 0.8, delay: 0.2 }}
     >
-      <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
-        <div className="w-full max-w-2xl p-10 rounded-2xl shadow-2xl border-r-8 border-b-8 border-black bg-gradient-to-b from-[#010027] via-[#13184E] to-[#3142B4] max-h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-[#F67C1B]">
+      <div className="relative z-10 flex items-center justify-center min-h-screen-dvh p-4">
+        <div className="w-full max-w-2xl p-5 sm:p-10 rounded-2xl shadow-2xl border-r-8 border-b-8 border-black bg-gradient-to-b from-[#010027] via-[#13184E] to-[#3142B4] max-h-[92dvh] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:bg-[#F67C1B]">
           <div className="text-left mb-6">
             <div className="flex items-center gap-2 mb-2">
               <Lock className="w-6 h-6 text-[#F67C1B]" />
-              <h1 className="text-4xl font-bold text-white">Review 0 Lock</h1>
+              <h1 className="text-2xl sm:text-4xl font-bold text-white">Review 0 Lock</h1>
             </div>
-            <p className="text-white/80 text-lg">
+            <p className="text-white/80 text-sm sm:text-lg">
               Select and permanently lock your team&apos;s Track and Problem Statement.
             </p>
           </div>
@@ -164,7 +164,7 @@ export default function Review0Modal({
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Track Selector */}
             <div>
-              <label className="text-xl block text-white font-medium mb-1">
+              <label className="text-base sm:text-xl block text-white font-medium mb-1">
                 Select Track
               </label>
               <Select
@@ -191,7 +191,7 @@ export default function Review0Modal({
 
             {/* Problem Statement Selector */}
             <div>
-              <label className="text-xl block text-white font-medium mb-1">
+              <label className="text-base sm:text-xl block text-white font-medium mb-1">
                 Select Problem Statement
               </label>
               {isLoadingPs ? (

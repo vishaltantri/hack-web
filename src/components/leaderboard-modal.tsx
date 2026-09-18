@@ -70,8 +70,8 @@ export default function LeaderboardModal({ onClose, isAdmin }: LeaderboardModalP
       transition={{ ease: easeOut, duration: 0.3 }}
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="relative z-10 flex items-center justify-center min-h-[85vh] p-2">
-        <div className="w-full max-w-4xl p-8 rounded-3xl shadow-2xl border-r-8 border-b-8 border-black bg-[#151932] border border-white/10 text-white max-h-[88vh] flex flex-col">
+      <div className="relative z-10 flex items-center justify-center min-h-[85dvh] p-2">
+        <div className="w-full max-w-4xl p-4 sm:p-8 rounded-3xl shadow-2xl border-r-8 border-b-8 border-black bg-[#151932] border border-white/10 text-white max-h-[88dvh] flex flex-col">
           
           {/* Header */}
           <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-6">
@@ -80,7 +80,7 @@ export default function LeaderboardModal({ onClose, isAdmin }: LeaderboardModalP
                 <Trophy className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h2 className="text-3xl font-extrabold tracking-wide text-white">
+                <h2 className="text-xl sm:text-3xl font-extrabold tracking-wide text-white">
                   Hackathon Leaderboard
                 </h2>
                 <p className="text-white/60 text-sm">
@@ -126,7 +126,7 @@ export default function LeaderboardModal({ onClose, isAdmin }: LeaderboardModalP
           </div>
 
           {/* Table Container */}
-          <div className="flex-1 overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-[#F67C1B] [&::-webkit-scrollbar-thumb]:rounded-full">
+          <div className="flex-1 overflow-y-auto overflow-x-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-[#F67C1B] [&::-webkit-scrollbar-thumb]:rounded-full">
             {isLoading ? (
               <div className="flex items-center justify-center py-20">
                 <div className="w-10 h-10 border-4 border-[#F67C1B] border-t-transparent rounded-full animate-spin"></div>
@@ -136,7 +136,7 @@ export default function LeaderboardModal({ onClose, isAdmin }: LeaderboardModalP
                 No teams found on the leaderboard yet.
               </div>
             ) : (
-              <table className="w-full text-left text-sm">
+              <table className="w-full min-w-[560px] text-left text-sm">
                 <thead className="sticky top-0 bg-[#151932] z-10 text-white/60 uppercase tracking-wider text-xs border-b border-white/10">
                   <tr>
                     <th className="py-3 px-3">Rank</th>

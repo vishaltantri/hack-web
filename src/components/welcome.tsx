@@ -18,7 +18,7 @@ export default function Welcome() {
 
 
   return (
-    <div className="max-h-screen bg-[#fefefe] overflow-hidden relative">
+    <div className="min-h-screen-dvh sm:max-h-screen-dvh bg-[#fefefe] sm:overflow-hidden relative">
       <div className="absolute inset-0">
         <motion.div
           initial={{ opacity: 0, y: -100 }}
@@ -92,7 +92,18 @@ export default function Welcome() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...springTransition, delay: 0.7 }}
         >
-          <div className="relative w-[31rem] h-[31rem]">
+          {/* Mobile logo */}
+          <div className="sm:hidden pt-6 flex justify-center">
+            <Image
+              src="/final-logo.webp"
+              alt="Hackulus Logo"
+              width={160}
+              height={160}
+              className="w-36 h-36 object-contain"
+            />
+          </div>
+          {/* Desktop logo composition */}
+          <div className="hidden sm:block relative w-[31rem] h-[31rem]">
             <Image
               src="/vector6.svg"
               alt=""
@@ -119,30 +130,30 @@ export default function Welcome() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ ...springTransition, delay: 0.9 }}
       >
-        <div className="relative left-96 bottom-56 items-center justify-center text-center">
-          <h2 className="anta text-6xl lg:text-8xl mb-5 font-black text-[#000000] leading-tight">
+        <div className="relative sm:left-96 sm:bottom-56 px-6 py-10 sm:py-0 sm:px-0 items-center justify-center text-center">
+          <h2 className="anta text-4xl sm:text-6xl lg:text-8xl mb-5 font-black text-[#000000] leading-tight">
             WELCOME TO
             <br />
             HACKULUS
           </h2>
 
           <div className="space-y-4 mb-8 hanken-grotesk">
-            <p className="text-2xl text-[#000000] font-medium">
+            <p className="text-base sm:text-2xl text-[#000000] font-medium">
               Where ideas ignite, <br />
               Code flows, and innovation takes flight. <br />
               24 hours to build, break, and revolutionize!
             </p>
           </div>
-          <div className="flex justify-center gap-8">
+          <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-8">
             <Button
               onClick={() => setIsSignInOpen(true)}
-              className="anta bg-gradient-to-r from-[#FF9811] via-[#FE751A] to-[#FC2D2D] text-white font-bold text-2xl px-12 py-6 rounded-full shadow-lg transform transition-all duration-200 hover:scale-105"
+              className="anta bg-gradient-to-r from-[#FF9811] via-[#FE751A] to-[#FC2D2D] text-white font-bold text-lg sm:text-2xl px-10 sm:px-12 py-5 sm:py-6 rounded-full shadow-lg transform transition-all duration-200 hover:scale-105"
             >
               SIGN UP
             </Button>
             <Button
               onClick={() => setIsLogInOpen(true)}
-              className="anta bg-gradient-to-r from-[#FC2D2D] via-[#FE751A] to-[#FF9811] text-white font-bold text-2xl px-12 py-6 rounded-full shadow-lg transform transition-all duration-200 hover:scale-105"
+              className="anta bg-gradient-to-r from-[#FC2D2D] via-[#FE751A] to-[#FF9811] text-white font-bold text-lg sm:text-2xl px-10 sm:px-12 py-5 sm:py-6 rounded-full shadow-lg transform transition-all duration-200 hover:scale-105"
             >
               LOG IN
             </Button>

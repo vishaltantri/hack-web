@@ -23,7 +23,7 @@ const withAdminAuth = <P extends object>(
 
     if (isLoading || !isAuthenticated || !isAdmin) {
       return (
-        <div className="w-screen h-screen bg-white text-center flex items-center justify-center text-3xl text-black">
+        <div className="w-screen h-screen-dvh bg-white text-center flex items-center justify-center text-3xl text-black">
           Loading...
         </div>
       );

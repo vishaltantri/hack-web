@@ -233,7 +233,7 @@ const Dashboard = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#F6F7FA] flex items-center justify-center">
+      <div className="min-h-screen-dvh bg-[#F6F7FA] flex items-center justify-center">
         <div className="w-10 h-10 border-4 border-[#F67C1B] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
@@ -244,13 +244,13 @@ const Dashboard = () => {
 
 
   return (
-    <div className="h-screen w-full flex overflow-hidden bg-[#F6F7FA] text-[#11152B] font-sans">
+    <div className="h-screen-dvh w-full flex overflow-hidden bg-[#F6F7FA] text-[#11152B] font-sans">
       
       {/* ── SIDEBAR ──────────────────────────────────────────────────────── */}
       <Timeline currentPhase={currentPhase} teamName={dashboardData?.team?.team_name} />
 
       {/* ── MAIN CONTENT ─────────────────────────────────────────────────── */}
-      <div className="flex-1 relative overflow-hidden flex flex-col h-screen">
+      <div className="flex-1 relative overflow-hidden flex flex-col h-screen-dvh">
         
         {/* Background Decorative Elements */}
         <div className="absolute top-8 right-8 grid grid-cols-4 gap-2 opacity-50 pointer-events-none z-0">
@@ -269,12 +269,12 @@ const Dashboard = () => {
         </div>
 
         {/* Content Wrapper */}
-        <div className="relative z-10 flex-1 overflow-y-auto p-10 pb-20">
+        <div className="relative z-10 flex-1 overflow-y-auto p-4 sm:p-6 lg:p-10 pb-20 pt-16 md:pt-10">
           
           {/* ── HEADER ───────────────────────────────────────────────────── */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div>
-              <h1 className="text-4xl font-extrabold tracking-tight mb-2 flex items-center gap-2">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight mb-2 flex items-center gap-2">
                 Hi, {user?.name || "User"}
               </h1>
               <p className="text-gray-500 font-medium">
@@ -312,10 +312,10 @@ const Dashboard = () => {
           )}
 
           {/* ── TOP BENTO CARDS ─────────────────────────────────────────── */}
-          <div className="grid grid-cols-2 gap-6 mb-10 h-[380px]">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 mb-10 xl:h-[380px]">
             
             {/* 1. Team Card */}
-            <div className="bg-[#151932] rounded-3xl p-6 shadow-xl flex flex-col relative overflow-hidden border border-white/5">
+            <div className="bg-[#151932] rounded-3xl p-4 sm:p-6 shadow-xl flex flex-col relative overflow-hidden border border-white/5 min-h-[340px] sm:min-h-0">
               {/* Decorative dots top-left */}
               <div className="absolute top-6 left-6 grid grid-cols-2 gap-1.5 opacity-30">
                 {[...Array(4)].map((_, i) => (
@@ -344,9 +344,9 @@ const Dashboard = () => {
               </div>
 
               {/* Card Body */}
-              <div className="flex gap-6 h-full">
+              <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 flex-1 min-h-0">
                 {/* Left side: Icon and Tagline */}
-                <div className="w-[45%] flex flex-col items-center justify-center text-center">
+                <div className="sm:w-[45%] flex flex-col items-center justify-center text-center">
                   <div className="w-28 h-28 rounded-full bg-gradient-to-b from-[#1E254A] to-[#151932] shadow-inner flex items-center justify-center mb-4 relative border border-white/5">
                     {/* Simplified Team Graphic matching the Figma vibe */}
                     <div className="absolute top-3 w-10 h-10 bg-[#F67C1B] rounded-full left-1/2 -translate-x-1/2"></div>
@@ -371,7 +371,7 @@ const Dashboard = () => {
                 </div>
 
                 {/* Right side: Member list */}
-                <div className="w-[55%] space-y-2">
+                <div className="sm:w-[55%] space-y-2 overflow-y-auto max-h-[240px] sm:max-h-none">
                   {sortedMembers.length > 0 ? (
                     sortedMembers.map((member) => {
                       const isCurrentUser = member.user_id === user?.user_id;
@@ -411,14 +411,14 @@ const Dashboard = () => {
             </div>
 
             {/* 2. CTA Card */}
-            <div className="bg-[#151932] rounded-3xl p-8 shadow-xl relative overflow-hidden border border-white/5">
+            <div className="bg-[#151932] rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden border border-white/5">
                {/* Left glowing background effect */}
                <div className="absolute -left-20 top-1/2 -translate-y-1/2 w-64 h-64 bg-blue-500/20 rounded-full blur-[80px]"></div>
                <div className="absolute left-10 top-1/2 -translate-y-1/2 w-32 h-32 bg-[#F67C1B]/20 rounded-full blur-[60px]"></div>
                
-               <div className="flex h-full items-center relative z-10">
+               <div className="flex flex-col sm:flex-row h-full items-center relative z-10">
                  {/* Left Graphic */}
-                 <div className="w-1/2 flex items-center justify-center relative">
+                 <div className="sm:w-1/2 flex items-center justify-center relative">
                     {/* Simulated Graphic using Lucide for now to match the vibe, or images if exact SVGs exist */}
                     <div className="relative">
                       <Image
@@ -435,8 +435,8 @@ const Dashboard = () => {
                  </div>
 
                  {/* Right Content */}
-                 <div className="w-1/2 pl-6 flex flex-col justify-center">
-                    <h2 className="text-white text-4xl font-bold leading-[1.1] mb-4">
+                 <div className="sm:w-1/2 sm:pl-6 flex flex-col justify-center w-full">
+                    <h2 className="text-white text-2xl sm:text-3xl lg:text-4xl font-bold leading-[1.1] mb-4">
                       Turn your ideas<br />into reality
                     </h2>
 
@@ -471,7 +471,7 @@ const Dashboard = () => {
                     <Button
                       onClick={handleButtonClick}
                       disabled={buttonState.action === "closed" || buttonState.action === "eliminated"}
-                      className="group relative flex items-center justify-between w-[240px] bg-gradient-to-r from-[#FF512F] to-[#F09819] hover:from-[#F09819] hover:to-[#FF512F] text-white font-bold text-base px-6 py-6 rounded-full shadow-[0_8px_20px_rgba(246,124,27,0.3)] hover:shadow-[0_12px_25px_rgba(246,124,27,0.4)] transition-all duration-300 transform hover:-translate-y-1 disabled:opacity-50 disabled:hover:translate-y-0"
+                      className="group relative flex items-center justify-between w-full sm:w-[240px] bg-gradient-to-r from-[#FF512F] to-[#F09819] hover:from-[#F09819] hover:to-[#FF512F] text-white font-bold text-base px-6 py-5 sm:py-6 rounded-full shadow-[0_8px_20px_rgba(246,124,27,0.3)] hover:shadow-[0_12px_25px_rgba(246,124,27,0.4)] transition-all duration-300 transform hover:-translate-y-1 disabled:opacity-50 disabled:hover:translate-y-0"
                     >
                       <span>{buttonState.text}</span>
                       <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm">
@@ -498,7 +498,7 @@ const Dashboard = () => {
                <h2 className="text-2xl font-bold tracking-wide text-[#11152B] uppercase">Tracks</h2>
             </div>
             
-            <div className="flex justify-between gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
               {tracks.map((track) => {
                 const detail = trackinfo.find((t) => t.name === track.name);
                 const dt = defaultTracks.find((t) => t.name === track.name);
@@ -510,7 +510,7 @@ const Dashboard = () => {
                   <div
                     key={track.name}
                     onClick={() => handleTrackClick(track.name)}
-                    className="flex-1 bg-white rounded-2xl p-5 pt-8 pb-6 flex flex-col items-center justify-between cursor-pointer border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all duration-300 hover:-translate-y-1 relative group h-[220px]"
+                    className="bg-white rounded-2xl p-5 pt-8 pb-6 flex flex-col items-center justify-between cursor-pointer border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.08)] transition-all duration-300 hover:-translate-y-1 relative group h-[190px] sm:h-[220px]"
                   >
                     {/* PS Count Badge */}
                     <div 

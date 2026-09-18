@@ -255,7 +255,7 @@ const AdminDashboard = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#F6F7FA] flex items-center justify-center">
+      <div className="min-h-screen-dvh bg-[#F6F7FA] flex items-center justify-center">
         <div className="w-10 h-10 border-4 border-[#F67C1B] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
@@ -316,13 +316,13 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="h-screen w-full flex overflow-hidden bg-[#F6F7FA] text-[#11152B] font-sans">
+    <div className="h-screen-dvh w-full flex overflow-hidden bg-[#F6F7FA] text-[#11152B] font-sans">
       
       {/* ── SIDEBAR ──────────────────────────────────────────────────────── */}
       <Timeline currentPhase={timelinePhase || "Participants reach"} teamName="Admin Panel" />
 
       {/* ── MAIN CONTENT ─────────────────────────────────────────────────── */}
-      <div className="flex-1 relative overflow-hidden flex flex-col h-screen">
+      <div className="flex-1 relative overflow-hidden flex flex-col h-screen-dvh">
         
         {/* Background Decorative Elements */}
         <div className="absolute top-8 right-8 grid grid-cols-4 gap-2 opacity-50 pointer-events-none z-0">
@@ -340,12 +340,12 @@ const AdminDashboard = () => {
         </div>
 
         {/* Content Wrapper */}
-        <div className="relative z-10 flex-1 overflow-y-auto p-10 pb-20">
+        <div className="relative z-10 flex-1 overflow-y-auto p-4 sm:p-6 lg:p-10 pb-20 pt-16 md:pt-10">
           
           {/* ── HEADER ───────────────────────────────────────────────────── */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div>
-              <h1 className="text-4xl font-extrabold tracking-tight mb-2 flex items-center gap-2">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight mb-2 flex items-center gap-2">
                 Hi, {user?.name || "Admin"}
               </h1>
               <p className="text-gray-500 font-medium">
@@ -353,7 +353,7 @@ const AdminDashboard = () => {
               </p>
             </div>
             
-            <div className="flex items-center gap-2 bg-white px-5 py-2 rounded-full border border-green-500/50 shadow-sm text-[#11152B] font-bold">
+            <div className="flex items-center gap-2 bg-white px-5 py-2 rounded-full border border-green-500/50 shadow-sm text-[#11152B] font-bold w-max">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
               <span>Admin Mode</span>
             </div>
@@ -364,15 +364,15 @@ const AdminDashboard = () => {
             <div className="flex flex-col gap-8">
               
               {/* Teams Table Card */}
-              <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 flex flex-col h-[500px]">
-                <div className="flex items-center justify-between mb-6">
+              <div className="bg-white rounded-3xl p-4 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 flex flex-col h-[500px]">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
                   <div className="flex items-center gap-2">
                     <span className="text-[#F67C1B] font-black text-xl italic">/</span>
-                    <h3 className="text-[#11152B] text-xl font-bold tracking-wide">
+                    <h3 className="text-[#11152B] text-lg sm:text-xl font-bold tracking-wide">
                       Participating Teams
                     </h3>
                   </div>
-                  <div className="relative w-64">
+                  <div className="relative w-full sm:w-64">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <Input
                       placeholder="Search for a team..."
@@ -383,8 +383,8 @@ const AdminDashboard = () => {
                   </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 [&::-webkit-scrollbar-thumb]:rounded-full">
-                  <table className="w-full text-sm text-left">
+                <div className="flex-1 overflow-x-auto overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 [&::-webkit-scrollbar-thumb]:rounded-full">
+                  <table className="w-full min-w-[480px] text-sm text-left">
                     <thead className="sticky top-0 bg-white z-10 shadow-sm">
                       <tr className="text-gray-500">
                         <th className="py-3 px-4 font-semibold rounded-tl-xl">S.No</th>
@@ -439,7 +439,7 @@ const AdminDashboard = () => {
               </div>
 
               {/* Timeline Control Card */}
-              <div className="bg-[#151932] rounded-3xl p-8 shadow-xl border border-white/5 relative overflow-hidden">
+              <div className="bg-[#151932] rounded-3xl p-6 sm:p-8 shadow-xl border border-white/5 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-[#F67C1B]/10 rounded-full blur-[40px] pointer-events-none"></div>
                 
                 <div className="flex items-center gap-2 mb-2 relative z-10">
@@ -481,7 +481,7 @@ const AdminDashboard = () => {
             <div className="flex flex-col gap-8">
               
               {/* Judging Panel Card */}
-              <div className="bg-[#151932] rounded-3xl p-8 shadow-xl border border-white/5 relative overflow-hidden">
+              <div className="bg-[#151932] rounded-3xl p-6 sm:p-8 shadow-xl border border-white/5 relative overflow-hidden">
                 {/* Glowing bg effects */}
                 <div className="absolute -left-20 top-1/2 -translate-y-1/2 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px]"></div>
                 
@@ -512,7 +512,7 @@ const AdminDashboard = () => {
 
                 {selectedTeam ? (
                   <form onSubmit={handleScoreSubmit} className="relative z-10">
-                    <div className="grid grid-cols-2 gap-x-6 gap-y-4 mb-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 mb-6">
                       {scoringCategories.map((category) => (
                         <div key={category.key}>
                           <label className="text-white/80 text-xs font-semibold block mb-1.5 uppercase tracking-wider">
@@ -583,7 +583,7 @@ const AdminDashboard = () => {
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                            <label className="text-gray-500 text-xs font-semibold uppercase tracking-wider block mb-1">Track</label>
                            <div className="bg-gray-50 border border-gray-100 p-3 rounded-xl text-sm font-medium text-gray-800">
@@ -605,7 +605,7 @@ const AdminDashboard = () => {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-3 gap-3 pt-2">
+                      <div className="grid grid-cols-3 gap-2 sm:gap-3 pt-2">
                         {['github_link', 'figma_link', 'presentation_link'].map((key) => {
                           const val = latestSubmission?.links?.[key as keyof typeof latestSubmission.links];
                           const name = key.split('_')[0];
@@ -643,7 +643,7 @@ const AdminDashboard = () => {
                    Permanently eliminate a team from Hackulus&apos;25.
                 </p>
 
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                   <Select onValueChange={(value) => setTeamToEliminate(Number(value))}>
                     <SelectTrigger className="flex-1 h-12 bg-white border-red-200 text-red-900 focus:ring-red-500">
                       <SelectValue placeholder="Select team to eliminate..." />

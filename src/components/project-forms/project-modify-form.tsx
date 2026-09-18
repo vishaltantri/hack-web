@@ -101,16 +101,16 @@ export default function ProjectModifyForm({
 
   return (
     <motion.div
-      className="w-full p-8 rounded-2xl shadow-2xl afacad"
+      className="w-full p-0 sm:p-8 rounded-2xl shadow-2xl afacad"
       initial={{ opacity: 0, y: "100%" }}
       animate={{ opacity: 1, y: "0%" }}
       exit={{ opacity: 0, y: "100%" }}
       transition={{ ease: easeOut, duration: 0.8, delay: 0.2 }}
     >
-      <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
-        <div className="w-full max-w-xl p-10 rounded-2xl shadow-2xl border-r-8 border-b-8 border-black bg-gradient-to-b from-[#010027] via-[#13184E] to-[#3142B4]">
+      <div className="relative z-10 flex items-center justify-center min-h-screen-dvh p-4">
+        <div className="w-full max-w-xl p-5 sm:p-10 rounded-2xl shadow-2xl border-r-8 border-b-8 border-black bg-gradient-to-b from-[#010027] via-[#13184E] to-[#3142B4] max-h-[92dvh] overflow-y-auto">
           <div className="text-left mb-6">
-            <h1 className="text-4xl font-bold text-white mb-2">
+            <h1 className="text-2xl sm:text-4xl font-bold text-white mb-2">
               Modify your project
             </h1>
             <p className="text-white/80 text-xl">
@@ -121,7 +121,7 @@ export default function ProjectModifyForm({
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-xl block text-white font-medium mb-1">
+              <label className="text-base sm:text-xl block text-white font-medium mb-1">
                 Project Title
               </label>
               <Input
@@ -134,7 +134,7 @@ export default function ProjectModifyForm({
             </div>
 
             <div>
-              <label className="text-xl block text-white font-medium mb-1">
+              <label className="text-base sm:text-xl block text-white font-medium mb-1">
                 Description
               </label>
               <Input
@@ -162,7 +162,7 @@ export default function ProjectModifyForm({
             </div>
 
             <div>
-              <label className="text-xl block text-white font-medium mb-1">
+              <label className="text-base sm:text-xl block text-white font-medium mb-1">
                 Presentation / PPT Link (Optional)
               </label>
               <Input
@@ -176,7 +176,7 @@ export default function ProjectModifyForm({
 
             {submissionType === "review1" && (
               <div>
-                <label className="text-xl block text-white font-medium mb-1">
+                <label className="text-base sm:text-xl block text-white font-medium mb-1">
                   Demo Link (Optional)
                 </label>
                 <Input
@@ -192,7 +192,7 @@ export default function ProjectModifyForm({
             {(submissionType === "review2" || submissionType === "final") && (
               <>
                 <div>
-                  <label className="text-xl block text-white font-medium mb-1">
+                  <label className="text-base sm:text-xl block text-white font-medium mb-1">
                     Live / Deployed URL (Optional)
                   </label>
                   <Input
@@ -205,7 +205,7 @@ export default function ProjectModifyForm({
                 </div>
 
                 <div>
-                  <label className="text-xl block text-white font-medium mb-1">
+                  <label className="text-base sm:text-xl block text-white font-medium mb-1">
                     Video Demonstration URL (Optional)
                   </label>
                   <Input

@@ -87,6 +87,15 @@ npm run build
 npm start
 ```
 
+## Testing mobile layouts
+
+The UI is fully responsive (hamburger timeline drawer, stacked cards, scrolling tables below `md`). To check a layout at phone size:
+
+1. Open Chrome/Edge DevTools → `Ctrl+Shift+M` (device toolbar) and pick a device such as **iPhone 14** (390px), or
+2. Simply drag the browser window below `768px` and reload.
+
+The backend must be running (see the `Hackulus_26_BE`/backend README) for pages beyond the landing/login screens to render data.
+
 
 ## Contributors
 

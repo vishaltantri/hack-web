@@ -57,19 +57,29 @@ const IdeaSubmission = () => {
         alt="yellow decor"
         width={70}
         height={70}
-        className="absolute top-10 left-56"
+        className="absolute top-10 left-56 hidden md:block"
       />
       <Image
         src="/vector13.svg"
         alt="yellow decor"
         width={180}
         height={180}
-        className="absolute bottom-0 left-96"
+        className="absolute bottom-0 left-96 hidden md:block"
       />
 
       <style jsx>{`
+        @media (max-width: 767px) {
+          .corner-image-right,
+          .corner-image-left,
+          .corner-image-topleft,
+          .semi-circle,
+          .logo-circle,
+          .decor {
+            display: none;
+          }
+        }
         .wrapper {
-          min-height: 100vh;
+          min-height: 100dvh;
           width: 100vw;
           background: #fff;
           display: flex;

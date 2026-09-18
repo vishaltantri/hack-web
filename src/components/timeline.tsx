@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Users,
@@ -14,6 +14,8 @@ import {
   Trophy,
   Power,
   ChevronDown,
+  Menu,
+  X,
 } from "lucide-react";
 
 const HACKATHON_PHASES = [
@@ -47,7 +49,13 @@ interface TimelineProps {
 
 export default function Timeline({ currentPhase, teamName }: TimelineProps) {
   const { logout, user } = useAuth();
-  
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  // Close the mobile drawer whenever the route/page re-renders with a new phase
+  useEffect(() => {
+    setIsDrawerOpen(false);
+  }, [currentPhase]);
+
   // Normalize string for matching just in case
   const normalizedCurrentPhase = currentPhase.toLowerCase();
   const currentIndex = HACKATHON_PHASES.findIndex(
@@ -64,9 +72,10 @@ export default function Timeline({ currentPhase, teamName }: TimelineProps) {
       .slice(0, 2)
       .toUpperCase();
 
-  return (
-    <div className="w-[18rem] bg-[#11152B] relative flex flex-col h-full overflow-hidden text-white border-r border-[#ffffff10] flex-shrink-0">
-      
+  const currentPhaseLabel = HACKATHON_PHASES[currentIndex] || currentPhase;
+
+  const sidebarBody = (
+    <>
       {/* ── LOGO ─────────────────────────────────────────────── */}
       <div className="pt-8 pb-6 flex items-center justify-center border-b border-[#ffffff10]">
         <Image
@@ -110,7 +119,7 @@ export default function Timeline({ currentPhase, teamName }: TimelineProps) {
 
       {/* ── PROFILE & LOGOUT BOTTOM AREA ──────────────────────── */}
       <div className="mt-auto px-6 py-6 pb-8 border-t border-[#ffffff10] bg-[#11152B]">
-        
+
         {/* Profile Card */}
         <div className="flex items-center justify-between mb-6 cursor-pointer group">
           <div className="flex items-center gap-3">
@@ -147,7 +156,62 @@ export default function Timeline({ currentPhase, teamName }: TimelineProps) {
           <div key={i} className="w-1 h-1 rounded-full bg-[#F67C1B]"></div>
         ))}
       </div>
+    </>
+  );
 
-    </div>
+  return (
+    <>
+      {/* ── MOBILE TOP BAR (hamburger + current phase) ─────────── */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-[#11152B] text-white flex items-center justify-between px-4 py-3 border-b border-[#ffffff10]">
+        <button
+          onClick={() => setIsDrawerOpen(true)}
+          aria-label="Open menu"
+          className="p-2 -ml-2 rounded-lg hover:bg-white/10 transition-colors"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-[#F67C1B] font-black text-lg italic">/</span>
+          <span className="font-bold text-sm tracking-wide truncate">
+            {currentPhaseLabel}
+          </span>
+        </div>
+        <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center border border-white/20">
+          <span className="text-white text-xs font-bold">
+            {getInitials(user?.name || "User")}
+          </span>
+        </div>
+      </div>
+
+      {/* ── MOBILE DRAWER OVERLAY ──────────────────────────────── */}
+      {isDrawerOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-50 bg-black/60"
+          onClick={() => setIsDrawerOpen(false)}
+        />
+      )}
+      <div
+        className={`md:hidden fixed top-0 left-0 bottom-0 z-50 w-72 max-w-[85vw] transform transition-transform duration-300 ease-out ${
+          isDrawerOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="relative w-full h-full bg-[#11152B] flex flex-col overflow-hidden text-white border-r border-[#ffffff10]">
+          <button
+            onClick={() => setIsDrawerOpen(false)}
+            aria-label="Close menu"
+            className="absolute top-4 right-4 z-10 p-2 rounded-lg hover:bg-white/10 transition-colors"
+          >
+            <X className="w-5 h-5 text-white/80" />
+          </button>
+          {sidebarBody}
+        </div>
+      </div>
+
+      {/* ── DESKTOP SIDEBAR (hidden on mobile) ─────────────────── */}
+      <div className="hidden md:flex w-[18rem] flex-shrink-0 relative flex-col h-full overflow-hidden text-white border-r border-[#ffffff10] bg-[#11152B]">
+        {sidebarBody}
+      </div>
+    </>
   );
 }
+

@@ -42,16 +42,16 @@ export default function LogInForm({ onClose }: LogInFormProps) {
 
   return (
     <motion.div
-      className="w-full p-8 rounded-2xl shadow-2xl afacad"
+      className="w-full p-0 sm:p-8 rounded-2xl shadow-2xl afacad"
       initial={{ opacity: 0, y: "100%" }}
       animate={{ opacity: 1, y: "0%" }}
       exit={{ opacity: 0, y: "100%" }}
       transition={{ ease: easeOut, duration: 0.8, delay: 0.2 }}
     >
-      <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
-        <div className="w-full max-w-xl p-10 rounded-2xl shadow-2xl border-r-8 border-b-8 border-black bg-gradient-to-b from-[#010027] via-[#13184E] to-[#3142B4]">
+      <div className="relative z-10 flex items-center justify-center min-h-screen-dvh p-4">
+        <div className="w-full max-w-xl p-5 sm:p-10 rounded-2xl shadow-2xl border-r-8 border-b-8 border-black bg-gradient-to-b from-[#010027] via-[#13184E] to-[#3142B4] max-h-[92dvh] overflow-y-auto">
           <div className="text-left mb-6">
-            <h1 className="text-4xl font-bold text-white mb-2">LOG IN</h1>
+            <h1 className="text-2xl sm:text-4xl font-bold text-white mb-2">LOG IN</h1>
             <p className="text-white/80 text-xl">
               Welcome back young padawan! Let&apos;s get you logged in.
             </p>
@@ -59,7 +59,7 @@ export default function LogInForm({ onClose }: LogInFormProps) {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div>
-              <label className="text-2xl block text-white font-medium mb-1">
+              <label className="text-base sm:text-2xl block text-white font-medium mb-1">
                 Email
               </label>
               <Input
@@ -76,7 +76,7 @@ export default function LogInForm({ onClose }: LogInFormProps) {
             </div>
 
             <div>
-              <label className="text-2xl block text-white font-medium mb-1">
+              <label className="text-base sm:text-2xl block text-white font-medium mb-1">
                 Password
               </label>
               <Input

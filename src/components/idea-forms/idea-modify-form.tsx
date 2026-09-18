@@ -144,14 +144,14 @@ export default function IdeaModificationForm() {
   };
 
   return (
-    <div className="bg-transparent z-10 h-full -ml-56">
+    <div className="bg-transparent z-10 h-full w-full px-4 sm:px-8 -ml-0 sm:-ml-56">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-[#1b2251] text-5xl font-bold text-center ml-24 mb-8">
+        <h1 className="text-[#1b2251] text-2xl sm:text-3xl lg:text-5xl font-bold text-center sm:ml-24 mb-8">
           Modify your idea
         </h1>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <div className="flex items-center">
-            <label className="w-48 text-right mr-8 text-[#1b2251] text-3xl font-semibold">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-0">
+            <label className="sm:w-48 text-left sm:text-right sm:mr-8 text-[#1b2251] text-base sm:text-xl lg:text-3xl font-semibold">
               Idea Name
             </label>
             <div className="flex-1">
@@ -169,8 +169,8 @@ export default function IdeaModificationForm() {
             </div>
           </div>
 
-          <div className="flex items-start">
-            <label className="w-48 text-right mr-8 pt-2 text-[#1b2251] text-3xl font-semibold">
+          <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-0">
+            <label className="sm:w-48 text-left sm:text-right sm:mr-8 pt-0 sm:pt-2 text-[#1b2251] text-base sm:text-xl lg:text-3xl font-semibold">
               Description
             </label>
             <div className="flex-1">
@@ -188,8 +188,8 @@ export default function IdeaModificationForm() {
             </div>
           </div>
 
-          <div className="flex items-center">
-            <label className="w-48 text-right mr-8 text-[#1b2251] text-3xl font-semibold">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-0">
+            <label className="sm:w-48 text-left sm:text-right sm:mr-8 text-[#1b2251] text-base sm:text-xl lg:text-3xl font-semibold">
               Problem Statement
             </label>
             <div className="flex-1">
@@ -224,8 +224,8 @@ export default function IdeaModificationForm() {
             </div>
           </div>
 
-          <div className="flex items-center">
-            <label className="w-48 text-right mr-8 text-[#1b2251] text-3xl font-semibold">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-0">
+            <label className="sm:w-48 text-left sm:text-right sm:mr-8 text-[#1b2251] text-base sm:text-xl lg:text-3xl font-semibold">
               Presentation Link
             </label>
             <div className="flex-1">
@@ -243,7 +243,7 @@ export default function IdeaModificationForm() {
             </div>
           </div>
 
-          <div className="flex justify-end gap-x-52 items-center">
+          <div className="flex flex-col sm:flex-row justify-center sm:justify-end gap-4 sm:gap-x-52 items-center">
             <Button
               type="button"
               onClick={handleCancel}

@@ -50,11 +50,25 @@ export default {
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
   			}
-  		},
-  		borderRadius: {
+  		},  			borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
+  		},
+  		/* dvh-based viewport units: stable under mobile browser chrome collapse/expand */
+  		height: {
+  			'screen-dvh': '100dvh'
+  		},
+  		minHeight: {
+  			'screen-dvh': '100dvh',
+  			'85dvh': '85dvh'
+  		},
+  		maxHeight: {
+  			'92dvh': '92dvh',
+  			'90dvh': '90dvh',
+  			'88dvh': '88dvh',
+  			'95dvh': '95dvh',
+  			'screen-dvh': '100dvh'
   		},
   		keyframes: {
   			'accordion-down': {
